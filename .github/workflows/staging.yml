@@ -33,7 +33,7 @@ jobs:
         mkdir -p database
         touch database/database.sqlite
     - name: Run PHP code sniffer
-      run: composer phpcs
+      run: composer pint-test
     - name: Run PHPstan
       run: composer phpstan
     - name: Run tests (Unit and Feature tests) via PHPUnit
