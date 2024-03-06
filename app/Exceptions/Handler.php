@@ -39,6 +39,10 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+
+        $this->reportable(function (BadRequestException $e) {
+            return false;
+        });
     }
 
     public function render($request, Throwable $exception)

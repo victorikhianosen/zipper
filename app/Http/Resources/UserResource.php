@@ -26,7 +26,7 @@ class UserResource extends JsonResource
             'phone' => $this->resource->phone,
             'status' => $this->resource->status,
             'email_verified' => $this->resource->email_verified_at !== null,
-            'avatar' => $this->resource->avatar, // @phpstan-ignore-line
+            'avatar' => $this->resource->avatar,
         ];
     }
 }

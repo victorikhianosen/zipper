@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('status')->default(UserStatus::ACTIVE->value);
             $table->text('device_tokens')->nullable();
+            $table->text('avatar')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
