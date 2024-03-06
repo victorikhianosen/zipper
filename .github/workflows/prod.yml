@@ -42,26 +42,26 @@ jobs:
         DB_DATABASE: database/database.sqlite
       run: php artisan test --stop-on-defect
 
-  # deploy:
-  #   needs: [ "laravel-tests" ]
+  deploy:
+    needs: [ "laravel-tests" ]
 
-  #   runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  #   if: github.event_name == 'push'
+    if: github.event_name == 'push'
 
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-  #     - name: SSH and deploy to server
-  #       uses: appleboy/ssh-action@master
-  #       with:
-  #         host: ${{ secrets.SSH_HOST }}
-  #         username: ${{ secrets.SSH_USER }}
-  #         key: ${{ secrets.SSH_KEY }}
-  #         port: ${{ secrets.SSH_PORT }}
-  #         script: |
-  #           cd billschamp-api
-  #           git pull origin develop
-  #           composer install --no-dev --optimize-autoloader --ignore-platform-reqs
-  #           php artisan migrate --force
+      - name: SSH and deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /var/www/live-api
+            git pull origin main
+            composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+            php artisan migrate --force

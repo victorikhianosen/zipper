@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -46,5 +47,11 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
             Route::post('{action}', 'togglePushNotification')->whereIn('action', ['on', 'off']);
             Route::get('status', 'getPushNotificationStatus');
         });
+    });
+
+    Route::controller(ProfileController::class)->prefix('profile')->group(function () {
+        Route::post('update', 'updateUserProfile');
+        Route::post('update-avatar', 'updateUserProfilePhoto');
+        Route::post('update-password', 'updateUserPassword');
     });
 });
