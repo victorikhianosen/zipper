@@ -1,5 +1,7 @@
 ## Zippa Travels API
 
+[![Actions Status](https://github.com/Soft-Web-Digital/zippa-travels-api/workflows/Staging%20CI/badge.svg)](https://github.com/Soft-Web-Digital/zippa-travels-api/actions)
+
 Backend REST API on PHP (8.1) + Laravel(10) + MySQL(8.0).
 
 ## Quick Start to run locally

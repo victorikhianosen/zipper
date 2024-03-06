@@ -3,10 +3,10 @@ name: Staging CI
 on:
   push:
     branches:
-      - develop
+      - staging
   pull_request:
     branches:
-      - develop
+      - staging
 
 jobs:
   laravel-tests:
@@ -59,7 +59,7 @@ jobs:
           host: ${{ secrets.SSH_HOST_STAGING }}
           username: ${{ secrets.SSH_USER_STAGING }}
           key: ${{ secrets.SSH_KEY_STAGING }}
-          port: ${{ secrets.SSH_PORT_STAGING }}
+          port: ${{ secrets.SSH_-PORT_STAGING }}
           script: |
             cd /var/www/staging-api
             git pull origin staging
