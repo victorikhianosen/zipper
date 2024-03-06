@@ -1,0 +1,50 @@
+<?php
+
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\NotificationController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "api" middleware group. Make something great!
+|
+*/
+
+Route::controller(AuthController::class)->group(function () {
+    Route::post('register', 'register');
+    Route::post('login', 'login');
+    Route::post('send-password-reset-email', 'sendPasswordResetEmail')->middleware('throttle:3,1');
+    Route::post('verify-password-reset-token', 'verifyPasswordResetToken');
+    Route::post('reset-password', 'resetPassword');
+
+    Route::group(['middleware' => 'auth:sanctum'], function () {
+        Route::get('user', 'getAuthUser');
+        Route::post('logout', 'logout');
+        Route::post('resend-verification-email', 'resendVerificationEmail')->middleware('throttle:3,1');
+        Route::post('verify-email', 'verifyEmail');
+        Route::delete('delete-account', 'deleteAccount');
+    });
+});
+
+Route::group(['middleware' => 'auth:sanctum'], function () {
+    Route::controller(NotificationController::class)->group(function () {
+        Route::prefix('notifications')->group(function () {
+            Route::get('{type?}', 'getUserNotifications');
+            Route::get('{notification}/details', 'getNotification');
+            Route::put('{notification}/read', 'getNotification');
+            Route::put('{notification}/unread', 'markNotificationAsUnread');
+            Route::put('read-all', 'markAllNotificationAsRead');
+            Route::post('trigger', 'triggerTestNotification');
+        });
+
+        Route::prefix('push-notification')->group(function () {
+            Route::post('{action}', 'togglePushNotification')->whereIn('action', ['on', 'off']);
+            Route::get('status', 'getPushNotificationStatus');
+        });
+    });
+});

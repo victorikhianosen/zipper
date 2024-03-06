@@ -1,0 +1,17 @@
+parameters:
+    paths:
+        - app
+        - database/factories
+        - database/seeders
+        - routes
+        - tests
+
+    level: 8
+
+    checkGenericClassInNonGenericObjectType: false
+
+    ignoreErrors:
+    excludePaths:
+
+includes:
+    - vendor/nunomaduro/larastan/extension.neon

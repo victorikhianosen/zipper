@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Run PHPStan checks using Composer
+composer phpstan
+
+# Store the exit code of the PHPStan check
+PHPSTAN_EXIT_CODE=$?
+
+# Check if PHPStan check failed
+if [ $PHPSTAN_EXIT_CODE -ne 0 ]; then
+    echo "PHPStan check failed. Please fix the errors before committing."
+    exit 1
+fi
+
+# Run PHP CodeSniffer checks using Composer
+composer pint-test
+
+# Store the exit code of the PHP CodeSniffer check
+PHPCS_EXIT_CODE=$?
+
+# Check if PHP CodeSniffer check failed
+if [ $PHPCS_EXIT_CODE -ne 0 ]; then
+    echo "PHP CodeSniffer check failed. Please fix the errors before committing."
+    exit 1
+fi
