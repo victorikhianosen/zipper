@@ -42,28 +42,26 @@ jobs:
         DB_DATABASE: database/database.sqlite
       run: php artisan test --stop-on-defect
 
-  # deploy:
-  #   needs: [ "laravel-tests" ]
+  deploy:
+    needs: [ "laravel-tests" ]
 
-  #   runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  #   if: github.event_name == 'push'
+    if: github.event_name == 'push'
 
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-  #     - name: SSH and deploy to server
-  #       uses: appleboy/ssh-action@master
-  #       with:
-  #         host: ${{ secrets.SSH_HOST_STAGING }}
-  #         username: ${{ secrets.SSH_USER_STAGING }}
-  #         key: ${{ secrets.SSH_KEY_STAGING }}
-  #         port: ${{ secrets.SSH_PORT_STAGING }}
-  #         script: |
-  #           cd billschamp-api
-  #           git pull origin develop
-  #           composer install --no-dev --optimize-autoloader --ignore-platform-reqs
-  #           php artisan migrate --force
-  #           php artisan app:account-balance-sync
-  #           php artisan app:seed-products
+      - name: SSH and deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST_STAGING }}
+          username: ${{ secrets.SSH_USER_STAGING }}
+          key: ${{ secrets.SSH_KEY_STAGING }}
+          port: ${{ secrets.SSH_PORT_STAGING }}
+          script: |
+            cd /var/www/staging-api
+            git pull origin staging
+            composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+            php artisan migrate --force
