@@ -56,10 +56,10 @@ jobs:
       - name: SSH and deploy to server
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SSH_HOST_STAGING }}
-          username: ${{ secrets.SSH_USER_STAGING }}
-          key: ${{ secrets.SSH_KEY_STAGING }}
-          port: ${{ secrets.SSH_-PORT_STAGING }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
           script: |
             cd /var/www/staging-api
             git pull origin staging
