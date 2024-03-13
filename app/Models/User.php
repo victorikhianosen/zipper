@@ -4,12 +4,15 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Enums\AuthType;
+use App\Enums\Gender;
 use App\Enums\Status\UserStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -30,10 +33,16 @@ class User extends Authenticatable
         'last_name',
         'email',
         'phone',
+        'phone_code',
+        'username',
+        'gender',
+        'auth_type',
+        'ref_code',
         'password',
         'email_verification_otp',
         'email_verification_expiry',
         'email_verified_at',
+        'login_biometric_activated_at',
         'device_tokens',
         'avatar',
     ];
@@ -55,6 +64,8 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
+        'auth_type' => AuthType::class,
+        'gender' => Gender::class,
         'status' => UserStatus::class,
         'password' => 'hashed',
         'device_tokens' => 'array',
@@ -69,6 +80,15 @@ class User extends Authenticatable
         static::deleting(function ($user) {
             $user->update(['email' => '['.now().'] '.$user->email]);
         });
+    }
+
+    public static function generateRefCode(): string
+    {
+        do {
+            $ref = Str::upper(Str::random(8));
+        } while (static::query()->where('ref_code', $ref)->exists());
+
+        return $ref;
     }
 
     public function getFullNameAttribute(): string

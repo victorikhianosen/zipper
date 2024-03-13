@@ -6,6 +6,8 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
+        "genealabs/laravel-sign-in-with-apple": "^0.7.0",
+        "google/apiclient": "^2.15",
         "guzzlehttp/guzzle": "^7.2",
         "imagekit/imagekit": "^4.0",
         "kutia-software-company/larafirebase": "^1.3",

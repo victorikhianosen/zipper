@@ -21,9 +21,12 @@ class LoginRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'email' => 'required|email',
-            'password' => 'required',
-        ];
+        return match ($this->route('provider')) {
+            'google', 'apple' => ['user_token' => ['required', 'string']],
+            default => [
+                'email' => ['required', 'email'],
+                'password' => ['required', 'string'],
+            ]
+        };
     }
 }

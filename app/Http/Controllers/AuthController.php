@@ -27,9 +27,9 @@ class AuthController extends Controller
         return $this->success(data: $user);
     }
 
-    public function login(LoginRequest $request): JsonResponse
+    public function login(LoginRequest $request, string $provider): JsonResponse
     {
-        $user = $this->authService->logUserIn($request->validated());
+        $user = $this->authService->logUserIn($request->validated(), $provider);
 
         return $this->success(data: $user);
     }
@@ -79,6 +79,11 @@ class AuthController extends Controller
         $this->authService->resetUserPassword($request->email, $request->password, $request->otp);
 
         return $this->success('Password was reset successfully');
+    }
+
+    public function toggleBiometrics(string $type = 'login'): JsonResponse
+    {
+        return $this->success(data: $this->authService->toggleBiometrics($this->authUser(), $type));
     }
 
     public function deleteAccount(): JsonResponse
