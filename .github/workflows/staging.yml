@@ -64,4 +64,4 @@ jobs:
             cd /var/www/staging-api
             git pull origin staging
             composer install --no-dev --optimize-autoloader
-            php artisan migrate --force
+            php artisan migrate
