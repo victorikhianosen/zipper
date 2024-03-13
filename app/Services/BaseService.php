@@ -1,5 +1,5 @@
 <?php
 
-class BaseService {
-    
+class BaseService
+{
 }
