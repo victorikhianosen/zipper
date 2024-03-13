@@ -23,7 +23,7 @@ class PasswordResetTest extends TestCase
 
     public static string $invalidEmail = 'goke@gmail.com';
 
-    public static string $invalidOtp = '654321';
+    public static string $invalidOtp = '4321';
 
     public function testItFailsToSendPasswordResetMailDueToTooManyRequest(): void
     {
