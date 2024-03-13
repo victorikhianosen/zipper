@@ -60,7 +60,7 @@ class UserFactory extends Factory
     public function withOtp(string $otp = '', bool $expired = false): static
     {
         if (! $otp) {
-            $otp = app()->environment('production') ? (string) rand(100000, 999999) : '123456';
+            $otp = app()->environment('production') ? (string) rand(100000, 999999) : '1234';
         }
 
         $expiry = $expired ? now()->addHours(-1) : now()->addHour();

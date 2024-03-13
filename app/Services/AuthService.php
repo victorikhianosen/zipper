@@ -138,7 +138,7 @@ class AuthService
             throw new BadRequestException('Email address already verified', 400);
         }
 
-        $otp = app()->environment('production') ? (string) rand(1000, 9999) : '123456';
+        $otp = app()->environment('production') ? (string) rand(1000, 9999) : '1234';
 
         $user->update([
             'email_verification_otp' => bcrypt($otp),
@@ -200,7 +200,7 @@ class AuthService
         if (! $user) {
             throw new BadRequestException();
         }
-        $token = app()->environment('production') ? (string) rand(1000, 9999) : '123456';
+        $token = app()->environment('production') ? (string) rand(1000, 9999) : '1234';
         DB::table('password_reset_tokens')->updateOrInsert(['email' => $email], [
             'token' => Hash::make($token),
             'created_at' => now(),
