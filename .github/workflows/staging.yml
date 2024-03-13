@@ -63,5 +63,5 @@ jobs:
           script: |
             cd /var/www/staging-api
             git pull origin staging
-            composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+            composer install --no-dev --optimize-autoloader
             php artisan migrate --force

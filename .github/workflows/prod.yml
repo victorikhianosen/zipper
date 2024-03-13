@@ -63,5 +63,5 @@ jobs:
           script: |
             cd /var/www/live-api
             git pull origin main
-            composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+            composer install --no-dev --optimize-autoloader
             php artisan migrate --force
