@@ -141,8 +141,8 @@ class AuthService
         $otp = app()->environment('production') ? (string) rand(1000, 9999) : '1234';
 
         $user->update([
-            'email_verification_otp' => bcrypt($otp),
-            'email_verification_expiry' => now()->addHour(),
+            'verification_otp' => bcrypt($otp),
+            'verification_otp_expiry' => now()->addHour(),
         ]);
 
         $user->notify(new EmailVerificationRequest($otp));
@@ -169,17 +169,17 @@ class AuthService
             throw new BadRequestException('Email address already verified', 400);
         }
 
-        if (! $user->email_verification_otp || ! Hash::check($otp, $user->email_verification_otp)) {
+        if (! $user->verification_otp || ! Hash::check($otp, $user->verification_otp)) {
             throw new BadRequestException('Invalid OTP entered', 400);
         }
 
-        if (now()->gt($user->email_verification_expiry)) {
+        if (now()->gt($user->verification_otp_expiry)) {
             throw new BadRequestException('Expired OTP entered', 400);
         }
 
         $user->update([
-            'email_verification_otp' => null,
-            'email_verification_expiry' => null,
+            'verification_otp' => null,
+            'verification_otp_expiry' => null,
             'email_verified_at' => now(),
         ]);
 

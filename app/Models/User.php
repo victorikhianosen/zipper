@@ -39,9 +39,10 @@ class User extends Authenticatable
         'auth_type',
         'ref_code',
         'password',
-        'email_verification_otp',
-        'email_verification_expiry',
+        'verification_otp',
+        'verification_otp_expiry',
         'email_verified_at',
+        'two_factor_enabled_at',
         'login_biometric_activated_at',
         'device_tokens',
         'avatar',
@@ -56,6 +57,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'device_tokens',
+        'verification_otp',
     ];
 
     /**
@@ -70,7 +72,9 @@ class User extends Authenticatable
         'password' => 'hashed',
         'device_tokens' => 'array',
         'email_verified_at' => 'datetime',
-        'email_verification_expiry' => 'datetime',
+        'two_factor_enabled_at' => 'datetime',
+        'login_biometric_activated_at' => 'datetime',
+        'verification_otp_expiry' => 'datetime',
     ];
 
     protected static function boot()

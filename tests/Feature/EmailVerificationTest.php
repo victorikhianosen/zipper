@@ -131,8 +131,8 @@ class EmailVerificationTest extends TestCase
         $response = $this->postJson('/verify-email', ['otp' => '1055']);
         $response->assertStatus(200);
         $response->assertSee('Email verified successfully');
-        $this->assertNull($user->email_verification_otp);
-        $this->assertNull($user->email_verification_expiry);
+        $this->assertNull($user->verification_otp);
+        $this->assertNull($user->verification_otp_expiry);
         $this->assertNotNull($user->email_verified_at);
 
         Notification::assertSentTo(

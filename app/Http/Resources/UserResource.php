@@ -31,6 +31,7 @@ class UserResource extends JsonResource
             'status' => $this->resource->status,
             'auth_type' => $this->resource->auth_type,
             'email_verified' => $this->resource->email_verified_at !== null,
+            'two_factor_enabled' => $this->resource->two_factor_enabled_at !== null,
             'login_biometric_activated' => $this->resource->login_biometric_activated_at !== null,
             'avatar' => $this->resource->avatar,
         ];
