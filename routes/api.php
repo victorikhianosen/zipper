@@ -22,7 +22,7 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('send-password-reset-email', 'sendPasswordResetEmail')->middleware('throttle:3,1');
     Route::post('verify-password-reset-token', 'verifyPasswordResetToken');
     Route::post('reset-password', 'resetPassword');
-    Route::post('resend-2fa-email', 'resend2faEmail');
+    Route::post('resend-2fa-email', 'resend2faEmail')->middleware('throttle:3,1');
     Route::post('verify-2fa-token', 'verify2faToken');
 
     Route::group(['middleware' => 'auth:sanctum'], function () {

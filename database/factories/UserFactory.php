@@ -70,4 +70,11 @@ class UserFactory extends Factory
             'verification_otp_expiry' => $expiry,
         ]);
     }
+
+    public function with2fa(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'two_factor_enabled_at' => now(),
+        ]);
+    }
 }
