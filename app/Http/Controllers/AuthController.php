@@ -31,7 +31,7 @@ class AuthController extends Controller
     {
         $user = $this->authService->logUserIn($request->validated(), $provider);
 
-        return $this->success(data: $user);
+        return $this->success($this->authService->message, $user);
     }
 
     public function logout(): JsonResponse

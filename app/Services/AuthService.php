@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
 class AuthService
 {
-    public string $message = '';
+    public ?string $message = null;
 
     /**
      * @param  array<string, mixed>  $payload
@@ -306,6 +306,12 @@ class AuthService
     protected function returnUserAndToken(User $user, bool $check2fa = true): array
     {
         if ($check2fa && $user->two_factor_enabled_at) {
+            $otp = app()->environment('production') ? (string) rand(1000, 9999) : '1234';
+            $user->update([
+                'verification_otp' => bcrypt($otp),
+                'verification_otp_expiry' => now()->addHour(),
+            ]);
+            $user->notify(new TwoFactorRequest($otp));
             $this->message = "A 2fa otp has been sent to $user->email";
             $user = new UserResource($user);
 
