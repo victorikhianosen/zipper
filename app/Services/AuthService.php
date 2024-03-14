@@ -11,6 +11,7 @@ use App\Notifications\EmailVerificationRequest;
 use App\Notifications\EmailVerificationSuccess;
 use App\Notifications\PasswordResetRequest;
 use App\Notifications\PasswordResetSuccess;
+use App\Notifications\TwoFactorRequest;
 use Exception;
 use Google\Client;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,8 @@ use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
 class AuthService
 {
+    public string $message = '';
+
     /**
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
@@ -149,18 +152,6 @@ class AuthService
     }
 
     /**
-     * @return array<string, string|UserResource>
-     */
-    protected function returnUserAndToken(User $user): array
-    {
-        $token = $user->createToken('user')->plainTextToken;
-
-        $user = new UserResource($user);
-
-        return compact('user', 'token');
-    }
-
-    /**
      * @throws BadRequestException
      */
     public function verifyUserEmail(User $user, string $otp): void
@@ -189,6 +180,66 @@ class AuthService
             "Hi $user->first_name, \n Welcome to Zippa Travel.",
             ['database']
         ));
+    }
+
+    public function toggle2fa(User $user): UserResource
+    {
+        $user->update(['two_factor_enabled_at' => $user->two_factor_enabled_at ? null : now()]);
+
+        return new UserResource($user);
+    }
+
+    public function send2faEmail(string $email): void
+    {
+        $user = User::where('email', $email)->first();
+        if (! $user) {
+            throw ValidationException::withMessages(['email' => ['The email address is invalid.']]);
+        }
+
+        if ($user->two_factor_enabled_at === null) {
+            throw new BadRequestException('2FA not enabled!', 400);
+        }
+
+        $otp = app()->environment('production') ? (string) rand(1000, 9999) : '1234';
+
+        $user->update([
+            'verification_otp' => bcrypt($otp),
+            'verification_otp_expiry' => now()->addHour(),
+        ]);
+
+        $user->notify(new TwoFactorRequest($otp));
+    }
+
+    /**
+     * @return array<string, mixed>
+     *
+     * @throws BadRequestException|ValidationException
+     */
+    public function verify2faToken(string $email, string $otp): array
+    {
+        $user = User::where('email', $email)->first();
+        if (! $user) {
+            throw ValidationException::withMessages(['email' => ['The email address is invalid.']]);
+        }
+
+        if ($user->two_factor_enabled_at === null) {
+            throw new BadRequestException('2FA not enabled!', 400);
+        }
+
+        if (! $user->verification_otp || ! Hash::check($otp, $user->verification_otp)) {
+            throw new BadRequestException('Invalid OTP entered', 400);
+        }
+
+        if (now()->gt($user->verification_otp_expiry)) {
+            throw new BadRequestException('Expired OTP entered', 400);
+        }
+
+        $user->update([
+            'verification_otp' => null,
+            'verification_otp_expiry' => null,
+        ]);
+
+        return $this->returnUserAndToken($user, false);
     }
 
     /**
@@ -247,5 +298,24 @@ class AuthService
         $user->update(["{$type}_biometric_activated_at" => $user["{$type}_biometric_activated_at"] ? null : now()]);
 
         return new UserResource($user);
+    }
+
+    /**
+     * @return array<string, string|UserResource>
+     */
+    protected function returnUserAndToken(User $user, bool $check2fa = true): array
+    {
+        if ($check2fa && $user->two_factor_enabled_at) {
+            $this->message = "A 2fa otp has been sent to $user->email";
+            $user = new UserResource($user);
+
+            return compact('user');
+        }
+
+        $token = $user->createToken('user')->plainTextToken;
+
+        $user = new UserResource($user);
+
+        return compact('user', 'token');
     }
 }
