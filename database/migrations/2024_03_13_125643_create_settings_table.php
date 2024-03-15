@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('settings', function (Blueprint $table) {
-            $table->uuid()->primary();
+            $table->uuid('id')->primary();
             $table->unsignedDouble('hotel_service_charge')->default(0);
             $table->unsignedDouble('flight_service_charge')->default(0);
             $table->timestamps();

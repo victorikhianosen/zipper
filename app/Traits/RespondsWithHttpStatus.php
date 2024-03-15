@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
@@ -14,7 +15,7 @@ trait RespondsWithHttpStatus
      */
     public function success(
         ?string $message = 'Request successful.',
-        Collection|JsonResource|array $data = [],
+        Collection|JsonResource|Model|array $data = [],
         array $meta = [],
         int $code = 200
     ): JsonResponse {

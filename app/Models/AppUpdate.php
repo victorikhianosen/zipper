@@ -10,4 +10,8 @@ class AppUpdate extends Model
 {
     use HasFactory;
     use HasUuids;
+
+    protected $guarded = [];
+
+    protected $hidden = ['created_at'];
 }

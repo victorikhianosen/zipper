@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#Run Pint 
-
-composer pint
-
 # Run PHPStan checks using Composer
 composer phpstan
 
