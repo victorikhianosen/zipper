@@ -21,7 +21,7 @@ class AppUpdateController extends Controller
         $data = $request->validated();
         /** @var AppUpdate $update */
         $update = AppUpdate::query()
-            ->firstWhere('id',$data['id']);
+            ->firstWhere('id', $data['id']);
         unset($data['id']);
         $update->update($data);
 
