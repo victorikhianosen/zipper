@@ -60,14 +60,21 @@ class UserFactory extends Factory
     public function withOtp(string $otp = '', bool $expired = false): static
     {
         if (! $otp) {
-            $otp = app()->environment('production') ? (string) rand(100000, 999999) : '123456';
+            $otp = app()->environment('production') ? (string) rand(100000, 999999) : '1234';
         }
 
-        $expiry = $expired ? now()->addHours(-1) : now()->addHour();
+        $expiry = $expired ? now()->subHour() : now()->addHour();
 
         return $this->state(fn (array $attributes) => [
-            'email_verification_otp' => bcrypt($otp),
-            'email_verification_expiry' => $expiry,
+            'verification_otp' => bcrypt($otp),
+            'verification_otp_expiry' => $expiry,
+        ]);
+    }
+
+    public function with2fa(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'two_factor_enabled_at' => now(),
         ]);
     }
 }

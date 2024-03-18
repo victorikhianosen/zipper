@@ -17,13 +17,13 @@ class PasswordResetTest extends TestCase
 
     public static string $email = 'johndoe@gmail.com';
 
-    public static string $otp = '123456';
+    public static string $otp = '1234';
 
     public static string $password = 'password1234';
 
     public static string $invalidEmail = 'goke@gmail.com';
 
-    public static string $invalidOtp = '654321';
+    public static string $invalidOtp = '4321';
 
     public function testItFailsToSendPasswordResetMailDueToTooManyRequest(): void
     {

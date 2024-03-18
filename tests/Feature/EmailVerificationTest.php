@@ -78,7 +78,7 @@ class EmailVerificationTest extends TestCase
 
         Sanctum::actingAs($user, ['*']);
 
-        $response = $this->postJson('/verify-email', ['otp' => '000000']);
+        $response = $this->postJson('/verify-email', ['otp' => '0000']);
         $response->assertStatus(400);
         $response->assertSee('Email address already verified');
     }
@@ -100,39 +100,39 @@ class EmailVerificationTest extends TestCase
 
     public function testItFailsToVerifyEmailDueToInvalidOtp(): void
     {
-        $user = User::factory()->withOtp('102355')->unverified()->create();
+        $user = User::factory()->withOtp('1023')->unverified()->create();
 
         Sanctum::actingAs($user, ['*']);
 
-        $response = $this->postJson('/verify-email', ['otp' => '102455']);
+        $response = $this->postJson('/verify-email', ['otp' => '1025']);
         $response->assertStatus(400);
         $response->assertSee('Invalid OTP entered');
     }
 
     public function testItFailsToVerifyEmailDueToOtpExpired(): void
     {
-        $user = User::factory()->withOtp('102355', true)->unverified()->create();
+        $user = User::factory()->withOtp('1355', true)->unverified()->create();
 
         Sanctum::actingAs($user, ['*']);
 
-        $response = $this->postJson('/verify-email', ['otp' => '102355']);
+        $response = $this->postJson('/verify-email', ['otp' => '1055']);
         $response->assertStatus(400);
-        $response->assertSee('Expired OTP entered');
+        $response->assertSee('Invalid OTP entered');
     }
 
     public function testItVerifiesEmailAndSendNotification(): void
     {
         Notification::fake();
 
-        $user = User::factory()->withOtp('102355')->unverified()->create();
+        $user = User::factory()->withOtp('1055')->unverified()->create();
 
         Sanctum::actingAs($user, ['*']);
 
-        $response = $this->postJson('/verify-email', ['otp' => '102355']);
+        $response = $this->postJson('/verify-email', ['otp' => '1055']);
         $response->assertStatus(200);
         $response->assertSee('Email verified successfully');
-        $this->assertNull($user->email_verification_otp);
-        $this->assertNull($user->email_verification_expiry);
+        $this->assertNull($user->verification_otp);
+        $this->assertNull($user->verification_otp_expiry);
         $this->assertNotNull($user->email_verified_at);
 
         Notification::assertSentTo(
@@ -150,15 +150,15 @@ class EmailVerificationTest extends TestCase
             'no_data' => [
                 [],
             ],
-            'less_than_6_digits_otp' => [
+            'less_than_4_digits_otp' => [
                 ['otp' => '1'],
-                ['otp' => '103'],
-                ['otp' => '10365'],
+                ['otp' => '10'],
+                ['otp' => '105'],
             ],
-            'more_than_6_digits_otp' => [
-                ['otp' => '1023445'],
-                ['otp' => '10234353'],
-                ['otp' => '10234365'],
+            'more_than_4_digits_otp' => [
+                ['otp' => '10285'],
+                ['otp' => '104353'],
+                ['otp' => '1234365'],
             ],
         ];
     }

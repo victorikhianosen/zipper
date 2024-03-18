@@ -27,11 +27,11 @@ class AuthController extends Controller
         return $this->success(data: $user);
     }
 
-    public function login(LoginRequest $request): JsonResponse
+    public function login(LoginRequest $request, string $provider): JsonResponse
     {
-        $user = $this->authService->logUserIn($request->validated());
+        $user = $this->authService->logUserIn($request->validated(), $provider);
 
-        return $this->success(data: $user);
+        return $this->success($this->authService->message, $user);
     }
 
     public function logout(): JsonResponse
@@ -79,6 +79,30 @@ class AuthController extends Controller
         $this->authService->resetUserPassword($request->email, $request->password, $request->otp);
 
         return $this->success('Password was reset successfully');
+    }
+
+    public function resend2faEmail(PasswordResetEmailRequest $request): JsonResponse
+    {
+        $this->authService->send2faEmail($request->email);
+
+        return $this->success('A 2fa otp has been resent to '.$request->email);
+    }
+
+    public function verify2faToken(VerifyPasswordResetTokenRequest $request): JsonResponse
+    {
+        $user = $this->authService->verify2faToken($request->email, $request->otp);
+
+        return $this->success($this->authService->message, $user);
+    }
+
+    public function toggle2fa(): JsonResponse
+    {
+        return $this->success(data: $this->authService->toggle2fa($this->authUser()));
+    }
+
+    public function toggleBiometrics(string $type = 'login'): JsonResponse
+    {
+        return $this->success(data: $this->authService->toggleBiometrics($this->authUser(), $type));
     }
 
     public function deleteAccount(): JsonResponse

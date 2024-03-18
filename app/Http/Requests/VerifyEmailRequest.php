@@ -22,7 +22,7 @@ class VerifyEmailRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'otp' => 'required|numeric|digits:6',
+            'otp' => 'required|numeric|digits:4',
         ];
     }
 }
