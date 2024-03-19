@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Traits\GetsPagination;
 
-abstract class BaseService
+class BaseService
 {
-    abstract protected function model(): Model;
+    use GetsPagination;
 }

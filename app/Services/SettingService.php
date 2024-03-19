@@ -9,24 +9,24 @@ use Illuminate\Support\Collection;
 
 class SettingService extends BaseService
 {
-    protected function model(): Model
-    {
-        return resolve(Setting::class);
+    public function __construct(
+        protected Setting $setting
+    ) {
     }
 
     public function create(SettingRequest $request): Model
     {
-        return $this->model()->create($request->validated());
+        return $this->setting->create($request->validated());
     }
 
     public function edit(SettingRequest $request): void
     {
         $data = $request->validated();
-        $this->model()->update($data);
+        $this->setting->update($data);
     }
 
     public function all(): Collection
     {
-        return $this->model()->all();
+        return $this->setting->all();
     }
 }
