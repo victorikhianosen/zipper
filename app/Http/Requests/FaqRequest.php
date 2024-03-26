@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class FaqRequest extends FormRequest
 {
@@ -21,10 +22,23 @@ class FaqRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $data = [
             'question' => 'bail|required',
             'answer' => 'bail|required',
-            'faq_category_id' => 'numeric|exists:faq_categories,id',
+            'faq_category_id' => 'bail|required|string|exists:faq_categories,id',
         ];
+
+        return $data;
+    }
+
+    public function validated($key = null, $default = null)
+    {
+        $data = parent::validated($key);
+        $type = $this->resolveActionName();
+        if ($type == 'createFaq') {
+            $data['slug'] = Str::slug($data['question']).'-'.time();
+        }
+
+        return $data;
     }
 }

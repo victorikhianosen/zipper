@@ -21,17 +21,25 @@ class FaqCategoryController extends Controller
         return $this->success(data: $data['data'], meta: $data['meta']);
     }
 
-    public function create(): JsonResponse
+    public function create(FaqCategoryRequest $request): JsonResponse
     {
-        $data = $this->faqService->all();
+        $request->validate(['name' => 'unique:faq_categories,name']);
+        $data = $this->faqService->create($request);
 
         return $this->success(data: $data);
     }
 
-    public function edit(FaqCategoryRequest $faqCategoryRequest, FaqCategory $faqCategory): JsonResponse
+    public function editCategory(FaqCategory $faqCategory, FaqCategoryRequest $faqCategoryRequest): JsonResponse
     {
         $this->faqService->edit($faqCategoryRequest, $faqCategory);
 
         return $this->success(message: 'Record updated successfully');
+    }
+
+    public function deleteCategory(FaqCategory $faqCategory): JsonResponse
+    {
+        $this->faqService->destroy($faqCategory);
+
+        return $this->success(message: 'Record deleted successfully');
     }
 }

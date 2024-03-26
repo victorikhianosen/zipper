@@ -23,7 +23,7 @@ class FaqCategoryRequest extends FormRequest
     {
         return [
             'name' => 'bail|required|string',
-            'status' => 'bail|required|string',
+            'status' => 'bail|required|boolean',
         ];
     }
 }

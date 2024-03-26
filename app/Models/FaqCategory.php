@@ -16,6 +16,8 @@ class FaqCategory extends Model
 
     protected $table = 'faq_categories';
 
+    protected $hidden = ['created_at', 'updated_at'];
+
     public function faqs(): HasMany
     {
         return $this->hasMany(Faq::class);

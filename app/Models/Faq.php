@@ -16,6 +16,8 @@ class Faq extends Model
 
     protected $table = 'faqs';
 
+    protected $hidden = ['created_at', 'updated_at'];
+
     public function faqCategory(): BelongsTo
     {
         return $this->belongsTo(FaqCategory::class);

@@ -31,6 +31,11 @@ class FaqService extends BaseService
         $faqCategory->update($data);
     }
 
+    public function destroy(FaqCategory $faqCategory): void
+    {
+        $faqCategory->delete();
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -53,7 +58,7 @@ class FaqService extends BaseService
 
     public function singleFaq(Faq $faq): mixed
     {
-        $data = $faq->with(['faqCategory']);
+        $data = $this->faq->where('id', $faq->id)->with(['faqCategory'])->get();
 
         return $data;
     }

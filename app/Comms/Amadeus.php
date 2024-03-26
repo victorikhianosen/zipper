@@ -2,6 +2,7 @@
 
 namespace App\Comms;
 
+use App\Exceptions\CustomException;
 use Exception;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
@@ -21,8 +22,9 @@ class Amadeus
 
     private string $secret;
 
-    public function __construct()
-    {
+    public function __construct(
+        protected Connection $server
+    ) {
         $this->url = config('vars.amadeus.url');
         $this->clientId = config('vars.amadeus.api_key');
         $this->secret = config('vars.amadeus.secret_key');
@@ -57,7 +59,7 @@ class Amadeus
         }
 
         try {
-            $response = Http::asForm()->post($this->url.'/security/oauth2/token', [
+            $response = Http::asForm()->post($this->url.'/v1/security/oauth2/token', [
                 'grant_type' => 'client_credentials',
                 'client_id' => $this->clientId,
                 'client_secret' => $this->secret,
@@ -73,12 +75,29 @@ class Amadeus
         }
     }
 
-    // /**
-    //  * @param  array<string, mixed>  $data
-    //  * @return mixed
-    //  */
-    // public function searchOffers(array $data): mixed
-    // {
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array <string,mixed>
+     */
+    public function searchOffers(array $data): array
+    {
+        $endPoint = config('vars.amadeus.flight_offers');
+        $headers = ['content-type' => 'application/json', 'Authorization' => 'Bearer '.$this->token];
+        try {
+            $response = $this->server->sendGet(
+                url: $endPoint,
+                headers: $headers,
+                query: $data
+            );
+            Log::info($response);
+            if (array_key_exists('errors', $response) || ! array_key_exists('data', $response)) {
+                throw new CustomException('');
+            }
+        } catch (\Throwable $th) {
+            Log::error($th);
+            throw new CustomException('Error fetching offers, try again');
+        }
 
-    // }
+        return $response['data'];
+    }
 }

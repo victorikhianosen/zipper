@@ -14,25 +14,25 @@ class FaqController extends Controller
     ) {
     }
 
-    public function allFaqs(): JsonResponse
+    public function getAllFaqs(): JsonResponse
     {
         $data = $this->faqService->allFaqs();
 
-        return $this->success(data: $data['data'], meta: $data['metas']);
+        return $this->success(data: $data['data'], meta: $data['meta']);
     }
 
     public function createFaq(FaqRequest $faqRequest): JsonResponse
     {
         $data = $this->faqService->createFaq($faqRequest);
 
-        return $this->success(data: $data['data']);
+        return $this->success(data: $data);
     }
 
     public function singleFaq(Faq $faq): JsonResponse
     {
         $data = $this->faqService->singleFaq($faq);
 
-        return $this->success(data: $data['data']);
+        return $this->success(data: $data);
     }
 
     public function editFaq(Faq $faq, FaqRequest $faqRequest): JsonResponse
