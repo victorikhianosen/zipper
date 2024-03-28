@@ -26,6 +26,7 @@ class FlightOfferResource extends JsonResource
             'departure_time' => Carbon::parse($segments[0]['departure']['at'])->toDateTimeString(),
         ];
 
+        // if there will be a stop over
         if (count($segments) > 1) {
             $details['stop_in'] = $segments[0]['arrival']['iataCode'];
             $details['stop_at'] = Carbon::parse($segments[0]['arrival']['at'])->toDateTimeString();
@@ -37,6 +38,8 @@ class FlightOfferResource extends JsonResource
         $days = $interval->d;
         $hrs = $interval->h;
         $minute = $interval->i;
+        $details['aircraft'] = $data['dictionaries']['aircraft']; //@phpstan-ignore-line
+        $details['carrier'] = $data['dictionaries']['carriers']; //@phpstan-ignore-line
         $details['interval'] = $days > 0 ? $days.'d '.$hrs.'h '.$minute.'m' : $hrs.'h '.$minute.'m';
 
         return $details;

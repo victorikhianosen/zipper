@@ -98,6 +98,31 @@ class Amadeus
             throw new CustomException('Error fetching offers, try again');
         }
 
-        return $response['data'];
+        return $response;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function validatePrice(array $data): mixed
+    {
+        $endPoint = config('vars.amadeus.flight_offers_price');
+        $headers = ['content-type' => 'application/vnd.amadeus+json', 'Authorization' => 'Bearer '.$this->token, 'X-HTTP-Method-Override' => 'GET'];
+        try {
+            $response = $this->server->sendPost(
+                url: $endPoint,
+                headers: $headers,
+                data: $data
+            );
+            logger($response); //@phpstan-ignore-line
+            if (array_key_exists('errors', $response) || ! array_key_exists('data', $response)) {
+                throw new CustomException('');
+            }
+        } catch (\Throwable $th) {
+            logger($th);
+            throw new CustomException('Unable to validate details, try again');
+        }
+
+        return $response;
     }
 }

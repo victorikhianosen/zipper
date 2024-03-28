@@ -31,7 +31,7 @@ class FlightService extends BaseService
             'departureDate' => $data['departure_date'], 'adults' => $data['no_of_adult'],
             'children' => $data['no_of_children'], 'infants' => $data['no_of_infant'],
             'travelClass' => $data['flight_class'], 'nonStop' => $data['stop_over'],
-            'currencyCode' => 'NGN', 'max' => 2,
+            'currencyCode' => 'NGN', 'max' => 3,
         ];
         if ($data['trip_type'] == 'round') {
             $payload['returnDate'] = $data['arrival_date'];
@@ -41,7 +41,7 @@ class FlightService extends BaseService
             throw new CustomException('Search doesn\'t bring results');
         }
 
-        foreach ($offers as $offer) {
+        foreach ($offers['data'] as $offer) {
 
             $this->flightOffers->create([
                 'search_id' => $search_id,
@@ -56,6 +56,7 @@ class FlightService extends BaseService
                     'to_code' => $data['to'],
                     'to_city' => $toCity,
                 ],
+                'dictionaries' => $offers['dictionaries'],
             ]);
         }
 
@@ -74,4 +75,30 @@ class FlightService extends BaseService
             columns: ['id', 'city_name', 'city_code']
         );
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function validatePrice(FlightOffers $offer): array
+    {
+
+        $rawOffer = $offer?->raw_offer_response; //@phpstan-ignore-line
+        $payload = [
+            'data' => [
+                'type' => 'flight-offers-pricing',
+                'flightOffers' => [$rawOffer],
+            ],
+        ];
+        $amadeusValidatedDetail = $this->amadeus->validatePrice($payload);
+        if (! array_key_exists('data', $amadeusValidatedDetail) || ! array_key_exists('flightOffers', $amadeusValidatedDetail['data'])) {
+            throw new CustomException('Unable to validate price, try again');
+        }
+
+        return $amadeusValidatedDetail['data']['flightOffers'][0]['price'];
+    }
+
+    // public function bookFlight() : array{
+
+    //     return [];
+    // }
 }

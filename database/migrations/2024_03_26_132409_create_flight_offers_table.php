@@ -19,6 +19,7 @@ return new class extends Migration
             $table->json('pricing_option')->nullable();
             $table->json('traveler_pricing')->nullable();
             $table->json('locations')->nullable();
+            $table->json('dictionaries')->nullable();
             $table->json('raw_offer_response')->nullable();
             $table->timestamps();
         });

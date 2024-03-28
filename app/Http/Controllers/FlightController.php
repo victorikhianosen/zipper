@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\FlightOfferRequest;
 use App\Http\Resources\FlightOfferResource;
+use App\Models\FlightOffers;
 use App\Services\FlightService;
 use Illuminate\Http\JsonResponse;
 
@@ -21,4 +22,16 @@ class FlightController extends Controller
 
         return $this->success(data: FlightOfferResource::collection($offers));
     }
+
+    public function validatePrice(FlightOffers $offer): JsonResponse
+    {
+        $detail = $this->flightService->validatePrice($offer);
+
+        return $this->success(data: $detail);
+    }
+
+    // public function bookFlight() : JsonResponse{
+    //     $order = $this->flightService->bookFlight();
+    //     return $this->success(data:$order);
+    // }
 }

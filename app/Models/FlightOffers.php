@@ -19,5 +19,6 @@ class FlightOffers extends Model
         'itineraries' => 'json', 'locations' => 'json',
         'price' => 'json', 'pricing_option' => 'json',
         'traveler_pricing' => 'json', 'raw_offer_response' => 'json',
+        'dictionaries' => 'json',
     ];
 }
