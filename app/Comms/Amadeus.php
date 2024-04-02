@@ -126,8 +126,29 @@ class Amadeus
         return $response;
     }
 
-    // public function bookFlight()
-    // {
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function bookFlight(array $data): mixed
+    {
+        // info($data);
+        $endPoint = config('vars.amadeus.flight_book');
+        $headers = ['Accept' => 'application/vnd.amadeus+json', 'content-type' => 'application/vnd.amadeus+json', 'Authorization' => 'Bearer '.$this->token];
+        try {
+            $response = $this->server->sendPost(
+                url: $endPoint,
+                headers: $headers,
+                data: $data
+            );
+            logger($response); //@phpstan-ignore-line
+            if (array_key_exists('errors', $response) || ! array_key_exists('data', $response)) {
+                throw new CustomException('');
+            }
+        } catch (\Throwable $th) {
+            logger($th);
+            throw new CustomException('Unable to validate details, try again');
+        }
 
-    // }
+        return $response;
+    }
 }

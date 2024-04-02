@@ -48,7 +48,7 @@ class FlightBookingRequest extends FormRequest
             $rules['passengers.*.gender'] = 'bail|required|'.Rule::in(['MALE', 'FEMALE']);
             $rules['passengers.*.contact'] = 'bail|required|array';
             $rules['passengers.*.contact.email_address'] = 'bail|required|email';
-            $rules['passengers.*.contact.phones.*.device_type'] = 'bail|required|in:MOBILE,HOME,WORK';
+            $rules['passengers.*.contact.phones.*.device_type'] = 'bail|required|in:MOBILE,LANDLINE,FAX';
             $rules['passengers.*.contact.phones.*.country_calling_code'] = 'bail|required';
             $rules['passengers.*.contact.phones.*.number'] = 'bail|required';
             $rules['passengers.*.documents'] = 'bail|array|required';

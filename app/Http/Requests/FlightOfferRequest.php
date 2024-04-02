@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Exceptions\CustomException;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
 class FlightOfferRequest extends FormRequest
@@ -52,6 +53,12 @@ class FlightOfferRequest extends FormRequest
         if ($data['trip_type'] == 'round' && blank($data['arrival_date'])) {
             throw new CustomException('Round-trip requires an arrival-or-return date');
         }
+        $departureDate = Carbon::parse($data['departure_date']);
+        $arrivalDate = Carbon::parse($data['arrival_date']);
+        $today = today();
+
+        throw_if($departureDate->lessThan($today), CustomException::class, 'Departure date must be today or a date in the future');
+        throw_if($arrivalDate->lessThan($today), CustomException::class, 'Arrival date must be today or a date in the future');
 
         return $data;
     }

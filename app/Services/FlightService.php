@@ -103,32 +103,37 @@ class FlightService extends BaseService
      */
     public function bookFlight(FlightBookingRequest $request): array
     {
-        $rawOffer = FlightOffers::whereId($request?->offer_id)->first(); //@phpstan-ignore-line
+        $data = $request->validated();
+        $rawOffer = FlightOffers::whereId($data['offer_id'])->first();
         throw_if(blank($rawOffer), CustomException::class, 'Offer refreshed, please restart your search');
-        $meta = $this->buildFlightMeta($request);
+        $meta = $this->buildFlightMeta($data);
+        // logger($rawOffer->raw_offer_response);
+        // exit;
         $payload = [
             'data' => [
                 'type' => 'flight-order',
-                'flightOffers' => [$rawOffer],
-                'travelers' => [$meta['travelers']],
+                'flightOffers' => [$rawOffer->raw_offer_response],
+                'travelers' => $meta['travelers'],
                 'remarks' => $meta['remarks'],
                 'ticketingAgreement' => $meta['ticketing'],
                 'contacts' => $meta['contacts'],
             ],
         ];
+        $resp = $this->amadeus->bookFlight($payload);
 
         return [];
     }
 
     /**
+     * @param  array<string,mixed>  $data
      * @return array<string,mixed>
      */
-    private function buildFlightMeta(FlightBookingRequest $request): array
+    private function buildFlightMeta(array $data): array
     {
-        $data = $request->validated(); //@phpstan-ignore-next-line
+        //@phpstan-ignore-next-line
         $travelers = collect($data['passengers'])->map(function ($item) {
             return [
-                'id' => $item['id'],
+                'id' => '2',
                 'dateOfBirth' => $item['date_of_birth'],
                 'name' => [
                     'firstName' => $item['name']['first_name'],
@@ -137,32 +142,34 @@ class FlightService extends BaseService
                 'gender' => $item['gender'],
                 'contact' => [
                     'emailAddress' => $item['contact']['email_address'],
-                    'phones' => [
-                        'deviceType' => $item['contact']['phones'][0]['device_type'],
+                    'phones' => [['deviceType' => $item['contact']['phones'][0]['device_type'],
                         'countryCallingCode' => $item['contact']['phones'][0]['country_calling_code'],
-                        'number' => $item['contact']['phones'][0]['number'],
-                    ],
+                        'number' => $item['contact']['phones'][0]['number']]],
                 ],
 
                 'documents' => [
-                    'documentType' => $item['documents'][0]['document_type'],
-                    'birthPlace' => $item['documents'][0]['birth_place'],
-                    'issuanceLocation' => $item['documents'][0]['issuance_location'],
-                    'issuanceDate' => $item['documents'][0]['issuance_date'],
-                    'number' => $item['documents'][0]['number'],
-                    'expiryDate' => $item['documents'][0]['expiry_date'],
-                    'issuanceCountry' => $item['documents'][0]['issuance_country'],
-                    'validityCountry' => $item['documents'][0]['validity_country'],
-                    'nationality' => $item['documents'][0]['nationality'],
-                    'holder' => $item['documents'][0]['holder'],
+                    [
+                        'documentType' => $item['documents'][0]['document_type'],
+                        'birthPlace' => $item['documents'][0]['birth_place'],
+                        'issuanceLocation' => $item['documents'][0]['issuance_location'],
+                        'issuanceDate' => $item['documents'][0]['issuance_date'],
+                        'number' => $item['documents'][0]['number'],
+                        'expiryDate' => $item['documents'][0]['expiry_date'],
+                        'issuanceCountry' => $item['documents'][0]['issuance_country'],
+                        'validityCountry' => $item['documents'][0]['validity_country'],
+                        'nationality' => $item['documents'][0]['nationality'],
+                        'holder' => $item['documents'][0]['holder'],
+                    ],
                 ],
             ];
         })->toArray();
 
         $remarks = [
             'general' => [
-                'subType' => 'GENERAL_MISCELLANEOUS',
-                'text' => 'ZIPPA ONLINE BOOKING',
+                [
+                    'subType' => 'GENERAL_MISCELLANEOUS',
+                    'text' => 'ZIPPA ONLINE BOOKING',
+                ],
             ],
         ];
 
@@ -180,17 +187,17 @@ class FlightService extends BaseService
             'purpose' => 'STANDARD',
             'phones' => [[
                 'deviceType' => 'MOBILE',
-                'countryCallingCode' => '234',
-                'number' => '8123456789',
+                'countryCallingCode' => '33',
+                'number' => '480080076',
 
-            ], []],
-            'emailAddress' => 'jugo@generator.email',
+            ]],
+            'emailAddress' => 'jsupport@increibleviajes.es',
             'address' => [
                 'lines' => ['Calle Prado, 16'],
+                'postalCode' => '28014',
+                'cityName' => 'Madrid',
+                'countryCode' => 'ES',
             ],
-            'postalCode' => '2455',
-            'cityName' => 'Lagos',
-            'countryCode' => 'NG',
         ]];
 
         return [
