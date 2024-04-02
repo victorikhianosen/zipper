@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Comms\Amadeus;
 use App\Exceptions\CustomException;
+use App\Http\Requests\FlightBookingRequest;
 use App\Models\City;
 use App\Models\FlightOffers;
 use Illuminate\Support\Collection;
@@ -97,8 +98,106 @@ class FlightService extends BaseService
         return $amadeusValidatedDetail['data']['flightOffers'][0]['price'];
     }
 
-    // public function bookFlight() : array{
+    /**
+     * @return array<string, mixed>
+     */
+    public function bookFlight(FlightBookingRequest $request): array
+    {
+        $rawOffer = FlightOffers::whereId($request?->offer_id)->first(); //@phpstan-ignore-line
+        throw_if(blank($rawOffer), CustomException::class, 'Offer refreshed, please restart your search');
+        $meta = $this->buildFlightMeta($request);
+        $payload = [
+            'data' => [
+                'type' => 'flight-order',
+                'flightOffers' => [$rawOffer],
+                'travelers' => [$meta['travelers']],
+                'remarks' => $meta['remarks'],
+                'ticketingAgreement' => $meta['ticketing'],
+                'contacts' => $meta['contacts'],
+            ],
+        ];
 
-    //     return [];
-    // }
+        return [];
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private function buildFlightMeta(FlightBookingRequest $request): array
+    {
+        $data = $request->validated(); //@phpstan-ignore-next-line
+        $travelers = collect($data['passengers'])->map(function ($item) {
+            return [
+                'id' => $item['id'],
+                'dateOfBirth' => $item['date_of_birth'],
+                'name' => [
+                    'firstName' => $item['name']['first_name'],
+                    'lastName' => $item['name']['last_name'],
+                ],
+                'gender' => $item['gender'],
+                'contact' => [
+                    'emailAddress' => $item['contact']['email_address'],
+                    'phones' => [
+                        'deviceType' => $item['contact']['phones'][0]['device_type'],
+                        'countryCallingCode' => $item['contact']['phones'][0]['country_calling_code'],
+                        'number' => $item['contact']['phones'][0]['number'],
+                    ],
+                ],
+
+                'documents' => [
+                    'documentType' => $item['documents'][0]['document_type'],
+                    'birthPlace' => $item['documents'][0]['birth_place'],
+                    'issuanceLocation' => $item['documents'][0]['issuance_location'],
+                    'issuanceDate' => $item['documents'][0]['issuance_date'],
+                    'number' => $item['documents'][0]['number'],
+                    'expiryDate' => $item['documents'][0]['expiry_date'],
+                    'issuanceCountry' => $item['documents'][0]['issuance_country'],
+                    'validityCountry' => $item['documents'][0]['validity_country'],
+                    'nationality' => $item['documents'][0]['nationality'],
+                    'holder' => $item['documents'][0]['holder'],
+                ],
+            ];
+        })->toArray();
+
+        $remarks = [
+            'general' => [
+                'subType' => 'GENERAL_MISCELLANEOUS',
+                'text' => 'ZIPPA ONLINE BOOKING',
+            ],
+        ];
+
+        $ticketAgreement = [
+            'option' => 'DELAY_TO_CANCEL',
+            'delay' => '6D',
+        ];
+
+        $contacts = [[
+            'addresseeName' => [
+                'firstName' => 'ANDY',
+                'lastName' => 'ROGERS',
+            ],
+            'companyName' => 'ZIPPA',
+            'purpose' => 'STANDARD',
+            'phones' => [[
+                'deviceType' => 'MOBILE',
+                'countryCallingCode' => '234',
+                'number' => '8123456789',
+
+            ], []],
+            'emailAddress' => 'jugo@generator.email',
+            'address' => [
+                'lines' => ['Calle Prado, 16'],
+            ],
+            'postalCode' => '2455',
+            'cityName' => 'Lagos',
+            'countryCode' => 'NG',
+        ]];
+
+        return [
+            'travelers' => $travelers,
+            'remarks' => $remarks,
+            'ticketing' => $ticketAgreement,
+            'contacts' => $contacts,
+        ];
+    }
 }

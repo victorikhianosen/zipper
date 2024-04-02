@@ -125,4 +125,9 @@ class Amadeus
 
         return $response;
     }
+
+    // public function bookFlight()
+    // {
+
+    // }
 }

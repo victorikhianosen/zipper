@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FlightBookingRequest;
 use App\Http\Requests\FlightOfferRequest;
 use App\Http\Resources\FlightOfferResource;
 use App\Models\FlightOffers;
@@ -30,8 +31,10 @@ class FlightController extends Controller
         return $this->success(data: $detail);
     }
 
-    // public function bookFlight() : JsonResponse{
-    //     $order = $this->flightService->bookFlight();
-    //     return $this->success(data:$order);
-    // }
+    public function bookFlight(FlightBookingRequest $request): JsonResponse
+    {
+        $order = $this->flightService->bookFlight($request);
+
+        return $this->success(data: $order);
+    }
 }
