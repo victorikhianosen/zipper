@@ -94,8 +94,22 @@ class FlightService extends BaseService
         if (! array_key_exists('data', $amadeusValidatedDetail) || ! array_key_exists('flightOffers', $amadeusValidatedDetail['data'])) {
             throw new CustomException('Unable to validate price, try again');
         }
+        $price = $amadeusValidatedDetail['data']['flightOffers'][0]['price']; //@phpstan-ignore-next-line
+        $breakdown_by_passenger = collect($amadeusValidatedDetail['data']['flightOffers'][0]['travelerPricings'])
+            ->map(function ($item) {
+                return [
+                    'passenger_id' => $item['travelerId'],
+                    'fare_option' => $item['fareOption'],
+                    'passenger_type' => $item['travelerType'],
+                    'price' => $item['price']['total'],
+                ];
+            })
+            ->toArray();
 
-        return $amadeusValidatedDetail['data']['flightOffers'][0]['price'];
+        return [
+            'price' => $price,
+            'breakdown_by_passenger' => $breakdown_by_passenger,
+        ];
     }
 
     /**

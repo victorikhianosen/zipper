@@ -146,7 +146,7 @@ class Amadeus
             }
         } catch (\Throwable $th) {
             logger($th);
-            throw new CustomException('Unable to validate details, try again');
+            throw new CustomException('An error occured, while booking');
         }
 
         return $response;
