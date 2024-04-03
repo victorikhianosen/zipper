@@ -146,6 +146,9 @@ class Amadeus
             }
         } catch (\Throwable $th) {
             logger($th);
+            if (! $th instanceof CustomException) {
+                throw $th;
+            }
             throw new CustomException('An error occured, while booking');
         }
 

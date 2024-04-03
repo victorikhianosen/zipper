@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Exceptions\CustomException;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 
 class FlightBookingRequest extends FormRequest
@@ -41,6 +43,7 @@ class FlightBookingRequest extends FormRequest
 
         foreach ($this->input('passengers') as $key => $value) {
             $rules['passengers.*.id'] = 'bail|required';
+            $rules['passengers.*.passenger_type'] = 'bail|required|'.Rule::in(['ADULT', 'CHILD', 'INFANT']);
             $rules['passengers.*.date_of_birth'] = 'bail|date|required';
             $rules['passengers.*.name'] = 'bail|array|required';
             $rules['passengers.*.name.first_name'] = 'bail|required';
@@ -72,15 +75,18 @@ class FlightBookingRequest extends FormRequest
      *
      * @return array<string, mixed>
      */
-    public function messages()
+    public function messages(): array
     {
         return [
             'passengers.*.id.required' => 'The passenger id is required.',
+            'passengers.*.passenger_type.required' => 'The passenger type is required.',
+            'passengers.*.passenger_type.in' => 'The passenger type can any of this ADULT,CHILD,INFANT',
             'passengers.*.date_of_birth.required' => 'The passenger date of birth is required.',
             'passengers.*.date_of_birth.date' => 'The passenger date of birth must be a valid date',
             'passengers.*.email.required' => 'The passenger email is required',
             'passengers.*.email.email' => 'The passenger email is invalid',
             'passengers.*.contact.phones.*.device_type.required' => 'The passenger device type is required',
+            'passengers.*.contact.phones.*.device_type.in' => 'Supported passenger device types are MOBILE,LANDLINE,FAX',
             'passengers.*.gender.required' => 'The passenger gender is required',
             'passengers.*.gender.in' => 'The passenger can either be a MALE  or FEMALE',
             'passengers.*.contact.phones.*.country_calling_code.required' => 'The passenger country code is required.',
@@ -89,5 +95,38 @@ class FlightBookingRequest extends FormRequest
             'passengers.*.documents.*.document_type.in' => 'Document type not supported',
 
         ];
+    }
+
+    /**
+     * @param  array<string,mixed>  $itineraries
+     */
+    public function validatePassengerAge(array $itineraries): void
+    {
+        $data = parent::validated();
+        $passengers = $data['passengers']; //@phpstan-ignore-next-line
+        $departure_date = Carbon::parse($itineraries[0]['segments'][0]['departure']['at']);
+        foreach ($passengers as $psg) {
+
+            $psg_type = $psg['passenger_type'];
+            $dob = $psg['date_of_birth'];
+            $this->validateAge($psg_type, $departure_date, $dob);
+        }
+    }
+
+    private function validateAge(string $type, Carbon $departure_date, string $dob): void
+    {
+        $dob = Carbon::parse($dob);
+        $age = $departure_date->diffInYears($dob);
+        if ($type == 'ADULT' && $age < 12) {
+            throw new CustomException('Adult passenger age should be from 12 and above');
+        }
+
+        if ($type == 'CHILD' && ($age < 2 || $age >= 12)) {
+            throw new CustomException('Child passenger age should be from 3 - 11 years');
+        }
+
+        if ($type == 'INFANT' && $age > 2) {
+            throw new CustomException('Infant passenger age should be from 0 - 2 years');
+        }
     }
 }

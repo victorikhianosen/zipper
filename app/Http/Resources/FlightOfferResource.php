@@ -34,6 +34,7 @@ class FlightOfferResource extends JsonResource
         } else {
             $details['arrival_time'] = Carbon::parse($segments[0]['arrival']['at'])->toDateTimeString();
         }
+
         $interval = Carbon::parse($details['departure_time'])->diff($details['arrival_time']);
         $days = $interval->d;
         $hrs = $interval->h;
@@ -41,6 +42,7 @@ class FlightOfferResource extends JsonResource
         $details['aircraft'] = $data['dictionaries']['aircraft']; //@phpstan-ignore-line
         $details['carrier'] = $data['dictionaries']['carriers']; //@phpstan-ignore-line
         $details['interval'] = $days > 0 ? $days.'d '.$hrs.'h '.$minute.'m' : $hrs.'h '.$minute.'m';
+        $details['duration'] = $segments[0]['duration'];
 
         return $details;
     }

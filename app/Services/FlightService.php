@@ -120,9 +120,8 @@ class FlightService extends BaseService
         $data = $request->validated();
         $rawOffer = FlightOffers::whereId($data['offer_id'])->first();
         throw_if(blank($rawOffer), CustomException::class, 'Offer refreshed, please restart your search');
+        $request->validatePassengerAge($rawOffer->itineraries); //@phpstan-ignore-line
         $meta = $this->buildFlightMeta($data);
-        // logger($rawOffer->raw_offer_response);
-        // exit;
         $payload = [
             'data' => [
                 'type' => 'flight-order',
@@ -147,7 +146,7 @@ class FlightService extends BaseService
         //@phpstan-ignore-next-line
         $travelers = collect($data['passengers'])->map(function ($item) {
             return [
-                'id' => '2',
+                'id' => strval($item['id']),
                 'dateOfBirth' => $item['date_of_birth'],
                 'name' => [
                     'firstName' => $item['name']['first_name'],
