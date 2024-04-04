@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources;
 
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Carbon;
 
 class FlightOfferResource extends JsonResource
 {
@@ -16,33 +16,35 @@ class FlightOfferResource extends JsonResource
     public function toArray(Request $request): array
     {
         $data = parent::toArray($request);
-        $segments = $data['itineraries'][0]['segments']; // @phpstan-ignore-line
+        $itineraries = $data['itineraries']; // @phpstan-ignore-line
+        $aircrafts = $data['dictionaries']['aircraft']; // @phpstan-ignore-line
+        $segmentLoopArray = [];
         $details = [
             'id' => $data['id'], // @phpstan-ignore-line
             'total' => $data['price']['currency'].''.$data['price']['total'], // @phpstan-ignore-line
             'departure_from' => $data['locations']['from_city'].'('.$data['locations']['from_code'].')', // @phpstan-ignore-line
             'arrival_to' => $data['locations']['to_city'].'('.$data['locations']['to_code'].')', // @phpstan-ignore-line
             'trip_type' => $data['raw_offer_response']['oneWay'] == false ? 'Round-Trip' : 'One-Way', // @phpstan-ignore-line
-            'departure_time' => Carbon::parse($segments[0]['departure']['at'])->toDateTimeString(),
+            'itineraries' => [],
         ];
-
-        // if there will be a stop over
-        if (count($segments) > 1) {
-            $details['stop_in'] = $segments[0]['arrival']['iataCode'];
-            $details['stop_at'] = Carbon::parse($segments[0]['arrival']['at'])->toDateTimeString();
-            $details['arrival_time'] = Carbon::parse($segments[1]['arrival']['at'])->toDateTimeString();
-        } else {
-            $details['arrival_time'] = Carbon::parse($segments[0]['arrival']['at'])->toDateTimeString();
+        foreach ($itineraries as $key => $val) {
+            $itTrip = "trip_$key";
+            foreach ($val['segments'] as $sg) {
+                $segmentLoopArray[] = ['depart_from' => $sg['departure']['iataCode'],
+                    'departing_terminal' => $sg['departure']['terminal'] ?? null,
+                    'depart_at' => Carbon::parse($sg['departure']['at'])->toDateTimeString(),
+                    'arrive_in' => $sg['arrival']['iataCode'],
+                    'arrival_terminal' => $sg['arrival']['terminal'] ?? null,
+                    'arrive_at' => Carbon::parse($sg['arrival']['at'])->toDateTimeString(),
+                    'itinerary_duration' => $sg['duration'],
+                    'airline' => getAirlineMeta($sg['carrierCode']),
+                    'aircraft' => $aircrafts[$sg['aircraft']['code']], ];
+            }
+            $details['itineraries'][$itTrip] = $segmentLoopArray; // @phpstan-ignore-line
+            unset($segmentLoopArray);
         }
-
-        $interval = Carbon::parse($details['departure_time'])->diff($details['arrival_time']);
-        $days = $interval->d;
-        $hrs = $interval->h;
-        $minute = $interval->i;
-        $details['aircraft'] = $data['dictionaries']['aircraft']; //@phpstan-ignore-line
+        $details['aircraft'] = $aircrafts;
         $details['carrier'] = $data['dictionaries']['carriers']; //@phpstan-ignore-line
-        $details['interval'] = $days > 0 ? $days.'d '.$hrs.'h '.$minute.'m' : $hrs.'h '.$minute.'m';
-        $details['duration'] = $segments[0]['duration'];
 
         return $details;
     }

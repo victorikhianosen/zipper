@@ -53,6 +53,11 @@ class FlightOfferRequest extends FormRequest
         if ($data['trip_type'] == 'round' && blank($data['arrival_date'])) {
             throw new CustomException('Round-trip requires an arrival-or-return date');
         }
+
+        if ($data['trip_type'] == 'one' && filled($data['arrival_date'])) {
+            throw new CustomException('Only round-trip can have arrival/return date');
+        }
+
         $departureDate = Carbon::parse($data['departure_date']);
         $arrivalDate = Carbon::parse($data['arrival_date']);
         $today = today();

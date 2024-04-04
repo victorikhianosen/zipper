@@ -13,17 +13,19 @@ return new class extends Migration
     {
         Schema::create('flights', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('flight_number');
-            $table->foreignUuid('passenger_type_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignUuid('flight_class_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignUuid('airline_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('flight_order_ref');
             $table->string('from');
             $table->string('to');
             $table->unsignedDouble('flight_cost')->default(0);
-            $table->string('departure_port');
-            $table->string('arrival_port');
-            $table->dateTime('departure_time');
-            $table->dateTime('arrival_time');
+            $table->json('flight_offers')->nullable();
+
+            $table->string('departure_port')->nullable();
+            $table->string('remarks')->nullable();
+            $table->string('ticketing_agreement')->nullable();
+            $table->string('dictionaries')->nullable();
+            $table->string('arrival_port')->nullable();
+            $table->dateTime('departure_time')->nullable();
+            $table->dateTime('arrival_time')->nullable();
             $table->timestamps();
         });
     }

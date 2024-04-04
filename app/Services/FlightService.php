@@ -24,6 +24,7 @@ class FlightService extends BaseService
      */
     public function getOffers(array $data): array|Collection
     {
+
         $search_id = $data['search_id'];
         $fromCity = $this->city->where('city_code', $data['from'])->first()?->city_name;
         $toCity = $this->city->where('city_code', $data['to'])->first()?->city_name;
@@ -32,7 +33,7 @@ class FlightService extends BaseService
             'departureDate' => $data['departure_date'], 'adults' => $data['no_of_adult'],
             'children' => $data['no_of_children'], 'infants' => $data['no_of_infant'],
             'travelClass' => $data['flight_class'], 'nonStop' => $data['stop_over'],
-            'currencyCode' => 'NGN', 'max' => 3,
+            'currencyCode' => 'NGN', 'max' => 2,
         ];
         if ($data['trip_type'] == 'round') {
             $payload['returnDate'] = $data['arrival_date'];
