@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\FaqCategoryController;
+use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\AppUpdateController;
-use App\Http\Controllers\FaqCategoryController;
-use App\Http\Controllers\FaqController;
 use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
 
