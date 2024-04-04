@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use App\Traits\RespondsWithHttpStatus;
+use GuzzleHttp\Exception\ConnectException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -69,13 +70,16 @@ class Handler extends ExceptionHandler
             if ($exception instanceof AccessDeniedHttpException || $exception instanceof AuthorizationException) {
                 return $this->failure('Unauthorized, this action is unauthorized.', code: Response::HTTP_UNAUTHORIZED);
             }
-            if ($exception instanceof ConnectionException) {
+            if ($exception instanceof ConnectionException || $exception instanceof ConnectException) {
                 return $this->failure('Bad request, an error was encountered');
             }
             if ($exception instanceof HttpException) {
                 return $this->failure($exception->getMessage(), code: $exception->getCode());
             }
             if ($exception instanceof BadRequestException) {
+                return $this->failure($exception->getMessage(), code: $exception->getCode());
+            }
+            if ($exception instanceof CustomException) {
                 return $this->failure($exception->getMessage(), code: $exception->getCode());
             }
         }
