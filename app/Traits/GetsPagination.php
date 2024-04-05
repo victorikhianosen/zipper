@@ -5,10 +5,10 @@ namespace App\Traits;
 trait GetsPagination
 {
     /**
-     * @param  array<string,mixed>  $colums
+     * @param  string[]  $columns
      * @return array<string, mixed>
      */
-    public function paginate(mixed $query, array $columns = ['*']): array // @phpstan-ignore-line
+    public function paginate(mixed $query, array $columns = ['*']): array
     {
         $page = (int) (request()->page ?? 1);
         $perPage = (int) (request()->per_page ?? 10);

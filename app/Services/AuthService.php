@@ -243,13 +243,13 @@ class AuthService
     }
 
     /**
-     * @throws BadRequestException
+     * @throws ValidationException
      */
     public function sendPasswordResetEmail(string $email): void
     {
         $user = User::where('email', $email)->first();
         if (! $user) {
-            throw new BadRequestException();
+            throw ValidationException::withMessages(['email' => ['The email address is invalid.']]);
         }
         $token = app()->environment('production') ? (string) rand(1000, 9999) : '1234';
         DB::table('password_reset_tokens')->updateOrInsert(['email' => $email], [
@@ -262,30 +262,30 @@ class AuthService
     /**
      * Verify the reset code.
      *
-     * @throws BadRequestException
+     * @throws ValidationException
      */
     public function verifyPasswordResetToken(string $email, string $token): void
     {
         $passwordResetData = DB::table('password_reset_tokens')->where('email', $email)->first();
         if (! $passwordResetData || ! Hash::check($token, $passwordResetData->token)) { // @phpstan-ignore-line
-            throw new BadRequestException('The password reset token is invalid.', 400);
+            throw ValidationException::withMessages(['otp' => 'The password reset token is invalid.']);
         }
         if (now()->subHour()->gt($passwordResetData->created_at)) { // @phpstan-ignore-line
-            throw new BadRequestException('The password reset token has expired.', 400);
+            throw ValidationException::withMessages(['otp' => 'The password reset token has expired.']);
         }
     }
 
     /**
      * Reset the user's password.
      *
-     * @throws BadRequestException
+     * @throws ValidationException
      */
     public function resetUserPassword(string $email, string $password, string $token): void
     {
         $this->verifyPasswordResetToken($email, $token);
         $user = User::where('email', $email)->first();
         if (! $user) {
-            throw new BadRequestException('The password reset token is invalid.');
+            throw ValidationException::withMessages(['otp' => 'The password reset token is invalid.']);
         }
         $user->password = Hash::make($password);
         $user->save();

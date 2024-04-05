@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -32,7 +33,7 @@ class TwoFactorRequest extends Notification
     /**
      * Get the mail representation of the notification.
      */
-    public function toMail(User $notifiable): MailMessage
+    public function toMail(Admin|User $notifiable): MailMessage
     {
         return (new MailMessage())
             ->subject('Two Factor Authentication Notification')
