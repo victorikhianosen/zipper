@@ -36,6 +36,8 @@ class FlightOfferRequest extends FormRequest
             'trip_type' => 'bail|required|'.Rule::in(['one', 'round']),
             'stop_over' => 'bail|required|boolean',
             'search_id' => 'bail|required|unique:flight_offers,search_id',
+            'max_price' => 'bail|sometimes',
+            'airlines' => 'bail|sometimes',
         ];
     }
 

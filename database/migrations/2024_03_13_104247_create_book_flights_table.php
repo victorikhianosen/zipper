@@ -11,21 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('flights', function (Blueprint $table) {
+        Schema::create('book_flights', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->foreignUuid('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('flight_order_ref');
-            $table->string('from');
-            $table->string('to');
             $table->unsignedDouble('flight_cost')->default(0);
-            $table->json('flight_offers')->nullable();
 
             $table->string('departure_port')->nullable();
-            $table->string('remarks')->nullable();
-            $table->string('ticketing_agreement')->nullable();
-            $table->string('dictionaries')->nullable();
             $table->string('arrival_port')->nullable();
+            $table->json('locations')->nullable();
+            $table->json('flight_offers')->nullable();
+            $table->json('passengers')->nullable();
+            $table->json('remarks')->nullable();
+            $table->json('ticketing_agreement')->nullable();
+            $table->json('dictionaries')->nullable();
+            $table->json('search_meta')->nullable();
+
             $table->dateTime('departure_time')->nullable();
             $table->dateTime('arrival_time')->nullable();
+            $table->json('raw_response')->nullable();
             $table->timestamps();
         });
     }

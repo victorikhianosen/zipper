@@ -28,7 +28,7 @@ class FlightOfferResource extends JsonResource
             'itineraries' => [],
         ];
         foreach ($itineraries as $key => $val) {
-            $itTrip = "trip_$key";
+            $itTrip = $key == 0 ? 'going' : 'coming';
             foreach ($val['segments'] as $sg) {
                 $segmentLoopArray[] = ['depart_from' => $sg['departure']['iataCode'],
                     'departing_terminal' => $sg['departure']['terminal'] ?? null,
