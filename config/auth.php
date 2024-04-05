@@ -41,10 +41,10 @@ return [
             'provider' => 'users',
         ],
 
-        // 'admin' => [
-        //     'driver' => 'sanctum',
-        //     'provider' => 'admins',
-        // ],
+        'admin' => [
+            'driver' => 'sanctum',
+            'provider' => 'admins',
+        ],
     ],
 
     /*
@@ -70,10 +70,11 @@ return [
             'model' => App\Models\User::class,
         ],
 
-        // 'admin' => [
-        //     'driver' => 'eloquent',
-        //     'model' => App\Models\Admin::class,
-        // ],
+        'admins' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Admin::class,
+        ],
+
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',

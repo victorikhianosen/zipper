@@ -77,7 +77,7 @@ class PasswordResetTest extends TestCase
             'email' => static::$email,
             'otp' => static::$invalidOtp,
         ]);
-        $response->assertStatus(400);
+        $response->assertStatus(422);
         $response->assertSee('The password reset token is invalid.');
     }
 
@@ -95,7 +95,7 @@ class PasswordResetTest extends TestCase
             'email' => static::$email,
             'otp' => static::$otp,
         ]);
-        $response->assertStatus(400);
+        $response->assertStatus(422);
         $response->assertSee('The password reset token has expired.');
     }
 

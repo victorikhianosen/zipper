@@ -1,17 +1,28 @@
 <?php
 
+use App\Http\Controllers\Admin\AppUpdateController;
+use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\FaqCategoryController;
 use App\Http\Controllers\Admin\FaqController;
-use App\Http\Controllers\AppUpdateController;
 use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('admin')->group(function () {
+Route::controller(AuthController::class)->group(function () {
+    Route::post('login', 'login')->whereIn('provider', ['password', 'google', 'apple']);
+    Route::post('send-password-reset-email', 'sendPasswordResetEmail')->middleware('throttle:3,1');
+    Route::post('verify-password-reset-token', 'verifyPasswordResetToken');
+    Route::post('reset-password', 'resetPassword');
+    Route::post('resend-2fa-email', 'resend2faEmail')->middleware('throttle:3,1');
+    Route::post('verify-2fa-token', 'verify2faToken');
 
-    // Route::prefix('auth')->group(function () {
-    //     Route::post('login');
-    // });
+    Route::group(['middleware' => 'auth:admin'], function () {
+        Route::get('user', 'getAuthUser');
+        Route::post('logout', 'logout');
+        Route::post('toggle-2fa', 'toggle2fa');
+    });
+});
 
+Route::group(['middleware' => 'auth:admin'], function () {
     Route::prefix('updates')->controller(AppUpdateController::class)->group(function () {
         Route::post('create', 'create');
         Route::put('edit', 'edit');

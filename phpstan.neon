@@ -10,6 +10,8 @@ parameters:
 
     checkGenericClassInNonGenericObjectType: false
 
+    treatPhpDocTypesAsCertain: false
+
     ignoreErrors:
     excludePaths:
 
