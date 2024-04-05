@@ -36,6 +36,8 @@ class FlightOfferRequest extends FormRequest
             'trip_type' => 'bail|required|'.Rule::in(['one', 'round']),
             'stop_over' => 'bail|required|boolean',
             'search_id' => 'bail|required|unique:flight_offers,search_id',
+            'max_price' => 'bail|sometimes',
+            'airlines' => 'bail|sometimes',
         ];
     }
 
@@ -53,6 +55,11 @@ class FlightOfferRequest extends FormRequest
         if ($data['trip_type'] == 'round' && blank($data['arrival_date'])) {
             throw new CustomException('Round-trip requires an arrival-or-return date');
         }
+
+        if ($data['trip_type'] == 'one' && filled($data['arrival_date'])) {
+            throw new CustomException('Only round-trip can have arrival/return date');
+        }
+
         $departureDate = Carbon::parse($data['departure_date']);
         $arrivalDate = Carbon::parse($data['arrival_date']);
         $today = today();

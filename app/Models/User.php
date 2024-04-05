@@ -9,6 +9,7 @@ use App\Enums\Gender;
 use App\Enums\Status\UserStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -98,5 +99,10 @@ class User extends Authenticatable
     public function getFullNameAttribute(): string
     {
         return $this->first_name.' '.$this->last_name;
+    }
+
+    public function flights(): HasMany
+    {
+        return $this->hasMany(BookFlight::class);
     }
 }

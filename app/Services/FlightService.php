@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Comms\Amadeus;
 use App\Exceptions\CustomException;
 use App\Http\Requests\FlightBookingRequest;
+use App\Models\BookFlight;
 use App\Models\City;
 use App\Models\FlightOffers;
 use Illuminate\Support\Collection;
@@ -14,7 +15,8 @@ class FlightService extends BaseService
     public function __construct(
         protected Amadeus $amadeus,
         protected City $city,
-        protected FlightOffers $flightOffers
+        protected FlightOffers $flightOffers,
+        protected BookFlight $bookFlight
     ) {
     }
 
@@ -24,6 +26,7 @@ class FlightService extends BaseService
      */
     public function getOffers(array $data): array|Collection
     {
+
         $search_id = $data['search_id'];
         $fromCity = $this->city->where('city_code', $data['from'])->first()?->city_name;
         $toCity = $this->city->where('city_code', $data['to'])->first()?->city_name;
@@ -32,11 +35,18 @@ class FlightService extends BaseService
             'departureDate' => $data['departure_date'], 'adults' => $data['no_of_adult'],
             'children' => $data['no_of_children'], 'infants' => $data['no_of_infant'],
             'travelClass' => $data['flight_class'], 'nonStop' => $data['stop_over'],
-            'currencyCode' => 'NGN', 'max' => 3,
+            'currencyCode' => 'NGN', 'max' => 2,
         ];
         if ($data['trip_type'] == 'round') {
             $payload['returnDate'] = $data['arrival_date'];
         }
+        if (filled($data['airlines'])) {
+            $payload['includedAirlineCodes'] = $data['airlines'];
+        }
+        if (filled($data['max_price'])) {
+            $payload['maxPrice'] = intval($data['max_price']);
+        }
+
         $offers = $this->amadeus->searchOffers($payload);
         if (blank($offers)) {
             throw new CustomException('Search doesn\'t bring results');
@@ -57,6 +67,7 @@ class FlightService extends BaseService
                     'to_code' => $data['to'],
                     'to_city' => $toCity,
                 ],
+                'search_meta' => $data,
                 'dictionaries' => $offers['dictionaries'],
             ]);
         }
@@ -73,7 +84,7 @@ class FlightService extends BaseService
     {
         return $this->paginate(
             query: $this->city,
-            columns: ['id', 'city_name', 'city_code']
+            columns: ['id', 'city_name', 'city_code', 'country_code']
         );
     }
 
@@ -113,9 +124,9 @@ class FlightService extends BaseService
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, mixed> | \App\Models\BookFlight
      */
-    public function bookFlight(FlightBookingRequest $request): array
+    public function bookFlight(FlightBookingRequest $request): array|BookFlight
     {
         $data = $request->validated();
         $rawOffer = FlightOffers::whereId($data['offer_id'])->first();
@@ -133,8 +144,20 @@ class FlightService extends BaseService
             ],
         ];
         $resp = $this->amadeus->bookFlight($payload);
+        if (array_key_exists('data', $resp)) {
+            $data = $this->bookFlight->create([
+                'flight_order_ref' => $resp['data']['id'],
+                'locations' => $rawOffer->locations,
+                'flight_cost' => $resp['data']['flightOffers'][0]['price']['total'], 'flight_offers' => $resp['data']['flightOffers'],
+                'passengers' => $resp['data']['travelers'], 'remarks' => $resp['data']['remarks'],
+                'ticketing_agreement' => $resp['data']['ticketingAgreement'], 'dictionaries' => $resp['dictionaries'],
+                'raw_response' => $resp['data'], 'search_meta' => $rawOffer->search_meta,
+            ]);
+        } else {
+            throw new CustomException('An error occured');
+        }
 
-        return [];
+        return $data;
     }
 
     /**
@@ -219,5 +242,21 @@ class FlightService extends BaseService
             'ticketing' => $ticketAgreement,
             'contacts' => $contacts,
         ];
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    public function getAirlines(): array
+    {
+        try {
+            $data = @file_get_contents(storage_path('airlines.json')); //@phpstan-ignore-next-line
+            $data = json_decode($data);
+        } catch (\Throwable $th) {
+            logger($th);
+            throw new CustomException('Unable to fetch airlines');
+        }
+
+        return $data;
     }
 }
