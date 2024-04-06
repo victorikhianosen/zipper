@@ -82,8 +82,11 @@ class FlightService extends BaseService
      */
     public function getCities(): array
     {
+        $filter = request()->query('filter'); //@phpstan-ignore-next-line
+        $query = filled($filter) ? $this->city->where('city_name', 'like', "%$filter%") : $this->city;
+
         return $this->paginate(
-            query: $this->city,
+            query: $query,
             columns: ['id', 'city_name', 'city_code', 'country_code']
         );
     }
