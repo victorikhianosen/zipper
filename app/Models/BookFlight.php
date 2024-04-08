@@ -25,6 +25,7 @@ class BookFlight extends Model
         'raw_response' => 'json',
         'search_meta' => 'json',
         'locations' => 'json',
+        'request_body' => 'json',
     ];
 
     protected $hidden = ['created_at', 'updated_at'];
