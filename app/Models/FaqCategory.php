@@ -16,10 +16,24 @@ class FaqCategory extends Model
 
     protected $table = 'faq_categories';
 
-    protected $hidden = ['created_at', 'updated_at'];
+    protected $hidden = ['updated_at'];
+
+    protected $appends = ['faq_count'];
 
     public function faqs(): HasMany
     {
         return $this->hasMany(Faq::class);
+    }
+
+    public function getFaqCountAttribute(): float
+    {
+        return $this->faqs()->count();
+    }
+
+    public function getStatusAttribute(string|bool $value): string
+    {
+        $status = $value == true ? 'active' : 'inactive';
+
+        return $status;
     }
 }

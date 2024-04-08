@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -57,5 +58,11 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('update', 'updateUserProfile');
         Route::post('update-avatar', 'updateUserProfilePhoto');
         Route::post('update-password', 'updateUserPassword');
+    });
+
+    Route::controller(UserController::class)->prefix('user')->group(function () {
+        Route::prefix('all')->group(function () {
+            Route::get('flights', 'getFlightBookings');
+        });
     });
 });

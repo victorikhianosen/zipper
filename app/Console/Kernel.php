@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('queue:work --stop-when-empty');
         $schedule->command('fill:city')->withoutOverlapping();
         $schedule->command('prune:offers')->everyTwoHours()->withoutOverlapping();
+        $schedule->command('update:tracking')->everyOddHour()->withoutOverlapping();
     }
 
     /**

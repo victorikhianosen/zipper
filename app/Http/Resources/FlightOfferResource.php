@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Carbon;
 
 class FlightOfferResource extends JsonResource
 {
@@ -32,10 +31,10 @@ class FlightOfferResource extends JsonResource
             foreach ($val['segments'] as $sg) {
                 $segmentLoopArray[] = ['depart_from' => $sg['departure']['iataCode'],
                     'departing_terminal' => $sg['departure']['terminal'] ?? null,
-                    'depart_at' => Carbon::parse($sg['departure']['at'])->toDateTimeString(),
+                    'depart_at' => DateResource::format($sg['departure']['at']),
                     'arrive_in' => $sg['arrival']['iataCode'],
                     'arrival_terminal' => $sg['arrival']['terminal'] ?? null,
-                    'arrive_at' => Carbon::parse($sg['arrival']['at'])->toDateTimeString(),
+                    'arrive_at' => DateResource::format($sg['arrival']['at']),
                     'itinerary_duration' => $sg['duration'],
                     'airline' => getAirlineMeta($sg['carrierCode']),
                     'aircraft' => $aircrafts[$sg['aircraft']['code']], ];

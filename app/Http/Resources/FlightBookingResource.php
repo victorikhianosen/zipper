@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Carbon;
 
 class FlightBookingResource extends JsonResource
 {
@@ -40,6 +39,8 @@ class FlightBookingResource extends JsonResource
             })
             ->toArray();
         $details = [
+            'tracking_status' => $data['tracking_status'] ?? null,
+            'booking_status' => $data['status'] ?? null,
             'passenger_count' => $search_meta['no_of_children'] + $search_meta['no_of_adult'] + $search_meta['no_of_infant'],
             'queries' => $search_meta,
             'locations' => $data['locations'], // @phpstan-ignore-line
@@ -52,10 +53,10 @@ class FlightBookingResource extends JsonResource
             foreach ($val['segments'] as $sg) {
                 $segmentLoopArray[] = ['depart_from' => $sg['departure']['iataCode'],
                     'departing_terminal' => $sg['departure']['terminal'] ?? null,
-                    'depart_at' => Carbon::parse($sg['departure']['at'])->toDateTimeString(),
+                    'depart_at' => DateResource::format($sg['departure']['at']),
                     'arrive_in' => $sg['arrival']['iataCode'],
                     'arrival_terminal' => $sg['arrival']['terminal'] ?? null,
-                    'arrive_at' => Carbon::parse($sg['arrival']['at'])->toDateTimeString(),
+                    'arrive_at' => DateResource::format($sg['arrival']['at']),
                     'itinerary_duration' => $sg['duration'],
                     'airline' => getAirlineMeta($sg['carrierCode']),
                 ];

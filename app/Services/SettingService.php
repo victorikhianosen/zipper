@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Http\Requests\SettingRequest;
 use App\Models\Setting;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
 
 class SettingService extends BaseService
 {
@@ -25,8 +24,8 @@ class SettingService extends BaseService
         $this->setting->update($data);
     }
 
-    public function all(): Collection
+    public function all(): Model
     {
-        return $this->setting->all();
+        return $this->setting->first(); //@phpstan-ignore-line
     }
 }

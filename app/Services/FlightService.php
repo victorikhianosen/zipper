@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Comms\Amadeus;
+use App\Enums\Status\FlightStatus;
 use App\Exceptions\CustomException;
 use App\Http\Requests\FlightBookingRequest;
 use App\Models\BookFlight;
@@ -168,7 +169,7 @@ class FlightService extends BaseService
                     'flight_cost' => $resp['data']['flightOffers'][0]['price']['total'], 'flight_offers' => $resp['data']['flightOffers'],
                     'passengers' => $resp['data']['travelers'], 'remarks' => $resp['data']['remarks'],
                     'ticketing_agreement' => $resp['data']['ticketingAgreement'], 'dictionaries' => $resp['dictionaries'],
-                    'raw_response' => $resp['data'],
+                    'raw_response' => $resp['data'], 'status' => FlightStatus::COMPLETED->value,
                 ]);
             } else {
                 throw new CustomException('Unable to update record');

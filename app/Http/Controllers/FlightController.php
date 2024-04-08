@@ -42,6 +42,7 @@ class FlightController extends Controller
 
     public function viewFlight(BookFlight $flight): JsonResponse
     {
+
         return $this->success(data: new FlightBookingResource($flight));
     }
 

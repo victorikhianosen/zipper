@@ -16,6 +16,7 @@ return new class extends Migration
             $table->after('search_meta', function ($table) {
                 $table->json('request_body')->nullable();
                 $table->string('status')->default(FlightStatus::PENDING->value);
+                $table->string('tracking_status')->default(FlightStatus::UPCOMING->value);
             });
         });
     }
@@ -28,7 +29,7 @@ return new class extends Migration
         Schema::table('book_flights', function (Blueprint $table) {
             $table->dropColumn([
                 'request_body',
-                'status',
+                'status', 'tracking_status',
             ]);
         });
     }
