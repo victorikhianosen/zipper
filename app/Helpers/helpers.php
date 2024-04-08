@@ -20,3 +20,11 @@ if (! function_exists('getAirlineMeta')) {
         ];
     }
 }
+
+if (! function_exists('getRandomReference')) {
+
+    function getRandomReference(string $prefix): string
+    {
+        return strtoupper($prefix).time().mt_rand(1000, 9999);
+    }
+}

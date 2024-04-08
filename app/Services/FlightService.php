@@ -9,6 +9,8 @@ use App\Models\BookFlight;
 use App\Models\City;
 use App\Models\FlightOffers;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class FlightService extends BaseService
 {
@@ -82,7 +84,7 @@ class FlightService extends BaseService
      */
     public function getCities(): array
     {
-        $filter = request()->query('filter'); //@phpstan-ignore-next-line
+        $filter = @ucfirst(request()->query('filter')); //@phpstan-ignore-line
         $query = filled($filter) ? $this->city->where('city_name', 'like', "%$filter%") : $this->city;
 
         return $this->paginate(
@@ -146,21 +148,38 @@ class FlightService extends BaseService
                 'contacts' => $meta['contacts'],
             ],
         ];
+        // record pending booking
+        $pendingBooking = $this->bookFlight->create([
+            'locations' => $rawOffer->locations,
+            'search_meta' => $rawOffer->search_meta,
+            'request_body' => $payload,
+            'flight_order_ref' => getRandomReference('ZPP'),
+        ]);
+
+        // make payment
+
         $resp = $this->amadeus->bookFlight($payload);
-        if (array_key_exists('data', $resp)) {
-            $data = $this->bookFlight->create([
-                'flight_order_ref' => $resp['data']['id'],
-                'locations' => $rawOffer->locations,
-                'flight_cost' => $resp['data']['flightOffers'][0]['price']['total'], 'flight_offers' => $resp['data']['flightOffers'],
-                'passengers' => $resp['data']['travelers'], 'remarks' => $resp['data']['remarks'],
-                'ticketing_agreement' => $resp['data']['ticketingAgreement'], 'dictionaries' => $resp['dictionaries'],
-                'raw_response' => $resp['data'], 'search_meta' => $rawOffer->search_meta,
-            ]);
-        } else {
-            throw new CustomException('An error occured');
+        try {
+            DB::beginTransaction();
+            if (array_key_exists('data', $resp)) {
+                $pendingBooking->update([
+                    'flight_order_ref' => $resp['data']['id'],
+                    'flight_cost' => $resp['data']['flightOffers'][0]['price']['total'], 'flight_offers' => $resp['data']['flightOffers'],
+                    'passengers' => $resp['data']['travelers'], 'remarks' => $resp['data']['remarks'],
+                    'ticketing_agreement' => $resp['data']['ticketingAgreement'], 'dictionaries' => $resp['dictionaries'],
+                    'raw_response' => $resp['data'],
+                ]);
+            } else {
+                throw new CustomException('Unable to update record');
+            }
+            DB::commit();
+        } catch (Throwable $th) {
+            DB::commit();
+            logger($th);
+            throw new CustomException($th->getMessage());
         }
 
-        return $data;
+        return ['booking_id' => $pendingBooking->id];
     }
 
     /**

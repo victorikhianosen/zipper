@@ -37,7 +37,7 @@ class FlightController extends Controller
     {
         $order = $this->flightService->bookFlight($request);
 
-        return $this->success(message: 'Flight booked successfully');
+        return $this->success(message: 'Flight booked successfully', data: $order);
     }
 
     public function viewFlight(BookFlight $flight): JsonResponse
