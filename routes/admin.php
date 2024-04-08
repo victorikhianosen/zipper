@@ -22,7 +22,7 @@ Route::controller(AuthController::class)->group(function () {
     });
 });
 
-Route::group(['middleware' => 'auth:admin'], function () {
+Route::name('')->group(function () {
     Route::prefix('updates')->controller(AppUpdateController::class)->group(function () {
         Route::post('create', 'create');
         Route::put('edit', 'edit');
