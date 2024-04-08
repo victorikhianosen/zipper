@@ -154,6 +154,7 @@ class FlightService extends BaseService
             'search_meta' => $rawOffer->search_meta,
             'request_body' => $payload,
             'flight_order_ref' => getRandomReference('ZPP'),
+            'user_id' => auth()->id(),
         ]);
 
         // make payment
