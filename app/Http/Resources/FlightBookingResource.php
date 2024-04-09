@@ -38,6 +38,7 @@ class FlightBookingResource extends JsonResource
                 ];
             })
             ->toArray();
+        $pricing['grand_total'] = $data['flight_offers'][0]['price']['grandTotal']; // @phpstan-ignore-line
         $details = [
             'tracking_status' => $data['tracking_status'] ?? null,
             'booking_status' => $data['status'] ?? null,
@@ -51,10 +52,10 @@ class FlightBookingResource extends JsonResource
         foreach ($itineraries as $key => $val) {
             $itTrip = $key == 0 ? 'going' : 'coming';
             foreach ($val['segments'] as $sg) {
-                $segmentLoopArray[] = ['depart_from' => $sg['departure']['iataCode'],
+                $segmentLoopArray[] = ['depart_from' => getAirportMeta($sg['departure']['iataCode']),
                     'departing_terminal' => $sg['departure']['terminal'] ?? null,
                     'depart_at' => DateResource::format($sg['departure']['at']),
-                    'arrive_in' => $sg['arrival']['iataCode'],
+                    'arrive_in' => getAirportMeta($sg['arrival']['iataCode']),
                     'arrival_terminal' => $sg['arrival']['terminal'] ?? null,
                     'arrive_at' => DateResource::format($sg['arrival']['at']),
                     'itinerary_duration' => $sg['duration'],

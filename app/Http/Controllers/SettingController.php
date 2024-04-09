@@ -30,6 +30,9 @@ class SettingController extends Controller
     public function all(): JsonResponse
     {
         $data = $this->settingService->all();
+        if (blank($data)) {
+            $data = [];
+        }
 
         return $this->success(data: $data);
     }
