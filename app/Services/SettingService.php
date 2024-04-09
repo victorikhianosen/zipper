@@ -30,8 +30,8 @@ class SettingService extends BaseService
         $this->setting->first()?->update($data);
     }
 
-    public function all(): Model
+    public function all(): ?Model
     {
-        return $this->setting->first(); //@phpstan-ignore-line
+        return $this->setting->first();
     }
 }
