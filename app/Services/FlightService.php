@@ -9,18 +9,23 @@ use App\Http\Requests\FlightBookingRequest;
 use App\Models\BookFlight;
 use App\Models\City;
 use App\Models\FlightOffers;
+use App\Models\FlightSetting;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class FlightService extends BaseService
 {
+    protected FlightSetting $flightSetting;
+
     public function __construct(
         protected Amadeus $amadeus,
         protected City $city,
         protected FlightOffers $flightOffers,
-        protected BookFlight $bookFlight
+        protected BookFlight $bookFlight,
+        protected FlightSetting $setting
     ) {
+        $this->flightSetting = $this->setting->first(); // @phpstan-ignore-line
     }
 
     /**
@@ -228,35 +233,35 @@ class FlightService extends BaseService
             'general' => [
                 [
                     'subType' => 'GENERAL_MISCELLANEOUS',
-                    'text' => 'ZIPPA ONLINE BOOKING',
+                    'text' => $this->flightSetting->company_name,
                 ],
             ],
         ];
 
         $ticketAgreement = [
-            'option' => 'DELAY_TO_CANCEL',
-            'delay' => '6D',
+            'option' => $this->flightSetting->flight_ticket_option,
+            'delay' => $this->flightSetting->delay,
         ];
 
         $contacts = [[
             'addresseeName' => [
-                'firstName' => 'ANDY',
-                'lastName' => 'ROGERS',
+                'firstName' => $this->flightSetting->addressee_first_name,
+                'lastName' => $this->flightSetting->addressee_last_name,
             ],
-            'companyName' => 'ZIPPA',
+            'companyName' => $this->flightSetting->company_name,
             'purpose' => 'STANDARD',
             'phones' => [[
                 'deviceType' => 'MOBILE',
-                'countryCallingCode' => '33',
-                'number' => '480080076',
+                'countryCallingCode' => $this->flightSetting->country_calling_code,
+                'number' => $this->flightSetting->company_phone,
 
             ]],
-            'emailAddress' => 'jsupport@increibleviajes.es',
+            'emailAddress' => $this->flightSetting->email_address_for_amadeus,
             'address' => [
-                'lines' => ['Calle Prado, 16'],
-                'postalCode' => '28014',
-                'cityName' => 'Madrid',
-                'countryCode' => 'ES',
+                'lines' => [$this->flightSetting->company_address],
+                'postalCode' => $this->flightSetting->postal_code,
+                'cityName' => $this->flightSetting->city_name,
+                'countryCode' => $this->flightSetting->country_code,
             ],
         ]];
 

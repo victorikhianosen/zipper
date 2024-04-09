@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AppUpdateController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\FaqCategoryController;
 use App\Http\Controllers\Admin\FaqController;
+use App\Http\Controllers\FlightSettingController;
 use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,10 +30,21 @@ Route::group(['middleware' => 'auth:admin'], function () {
         Route::get('all', 'all');
     });
 
-    Route::prefix('settings')->controller(SettingController::class)->group(function () {
-        Route::post('create', 'create');
-        Route::put('edit', 'edit');
-        Route::get('all', 'all');
+    Route::prefix('settings')->group(function () {
+        // general
+        Route::controller(SettingController::class)->group(function () {
+            Route::post('create', 'create');
+            Route::put('edit', 'edit');
+            Route::get('all', 'all');
+        });
+
+        // flight-specific
+
+        Route::prefix('flight')->controller(FlightSettingController::class)->group(function () {
+            Route::post('create', 'create');
+            Route::put('edit', 'edit');
+            Route::get('all', 'all');
+        });
     });
 
     // FAQS Category

@@ -27,27 +27,30 @@ class FlightTrackingStatusUpdater extends Command
      */
     public function handle(): void
     {
-        $flights = BookFlight::whereStatus('completed')
-            ->where('tracking_status', '!=', 'completed')->get();
-        foreach ($flights as $flight) {
-            $searchMeta = $flight->search_meta;
-            $tripType = $searchMeta['trip_type']; //@phpstan-ignore-line
-            $flightOffers = $flight->flight_offers;
-            $itineraries = $flightOffers[0]['itineraries']; //@phpstan-ignore-line
-            $itinerariesCount = count($itineraries);
-            // when it's one-way
-            if ($tripType == 'one' && $itinerariesCount == 1) {
-                $segments = $itineraries[0]['segments'];
-                $this->checkSegmentAndUpdate($segments, $flight);
-            }
+        BookFlight::whereStatus('completed')
+            ->where('tracking_status', '!=', 'completed')
+            ->chunk(500, function ($flights) {
+                foreach ($flights as $flight) {
+                    $searchMeta = $flight->search_meta;
+                    $tripType = $searchMeta['trip_type']; //@phpstan-ignore-line
+                    $flightOffers = $flight->flight_offers;
+                    $itineraries = $flightOffers[0]['itineraries']; //@phpstan-ignore-line
+                    $itinerariesCount = count($itineraries);
+                    // when it's one-way
+                    if ($tripType == 'one' && $itinerariesCount == 1) {
+                        $segments = $itineraries[0]['segments'];
+                        $this->checkSegmentAndUpdate($segments, $flight);
+                    }
 
-            // when it's round-trip
-            if ($tripType == 'round' && $itinerariesCount == 2) {
-                $lastItinerary = $itineraries[$itinerariesCount - 1];
-                $segments = $lastItinerary['segments'];
-                $this->checkSegmentAndUpdate($segments, $flight);
-            }
-        }
+                    // when it's round-trip
+                    if ($tripType == 'round' && $itinerariesCount == 2) {
+                        $lastItinerary = $itineraries[$itinerariesCount - 1];
+                        $segments = $lastItinerary['segments'];
+                        $this->checkSegmentAndUpdate($segments, $flight);
+                    }
+                }
+            });
+
     }
 
     protected function updateTrackingStatus(string $date, BookFlight $flight): void
