@@ -106,7 +106,7 @@ class Amadeus
      */
     public function validatePrice(array $data): mixed
     {
-        $endPoint = config('vars.amadeus.flight_offers_price');
+        $endPoint = config('vars.amadeus.flight_offers_price').'?include=bags';
         $headers = ['content-type' => 'application/vnd.amadeus+json', 'Authorization' => 'Bearer '.$this->token, 'X-HTTP-Method-Override' => 'GET'];
         try {
             $response = $this->server->sendPost(

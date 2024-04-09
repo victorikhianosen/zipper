@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::post('paystack/hook', [PaystackHook::class, 'processHook']);
+
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
     Route::post('login/{provider}', 'login')->whereIn('provider', ['password', 'google', 'apple']);
@@ -65,4 +67,5 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
             Route::get('flights', 'getFlightBookings');
         });
     });
+
 });
