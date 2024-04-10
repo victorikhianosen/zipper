@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('offer_id');
             $table->foreignUuid('book_flight_id')->index()->nullable()->constrained()->nullOnDelete();
             $table->string('reference')->unique()->index();
             $table->unsignedDouble('amount')->default(0);

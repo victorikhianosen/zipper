@@ -17,6 +17,7 @@ class FlightOfferResource extends JsonResource
         $data = parent::toArray($request);
         $itineraries = $data['itineraries']; // @phpstan-ignore-line
         $aircrafts = $data['dictionaries']['aircraft']; // @phpstan-ignore-line
+        $travelerPricing = $data['traveler_pricing']; // @phpstan-ignore-line
         $segmentLoopArray = [];
         $details = [
             'id' => $data['id'], // @phpstan-ignore-line
@@ -44,6 +45,14 @@ class FlightOfferResource extends JsonResource
         }
         $details['aircraft'] = $aircrafts;
         $details['carrier'] = $data['dictionaries']['carriers']; //@phpstan-ignore-line
+
+        foreach ($travelerPricing as $tpItems) {
+            foreach ($tpItems['fareDetailsBySegment'] as $it) {
+                $details['check_bags'][] = [
+                    $tpItems['travelerType'] => $it['includedCheckedBags'] ?? 'NA',
+                ];
+            }
+        }
 
         return $details;
     }

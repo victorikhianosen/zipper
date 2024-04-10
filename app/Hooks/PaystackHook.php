@@ -1,5 +1,9 @@
 <?php
 
+use App\Enums\TransactionStatus;
+use App\Models\Transaction;
+use App\Models\User;
+
 class PaystackHook
 {
     public function processHook(): void
@@ -23,7 +27,7 @@ class PaystackHook
         }
         if ($event['data']['metadata']['type'] == 'flight') {
 
-            $this->processFlightBookingPayment($event);
+            self::processFlightBookingPayment($event);
         }
 
     }
@@ -31,8 +35,22 @@ class PaystackHook
     /**
      * @param  array<string,mixed>  $event
      */
-    protected function processFlightBookingPayment($event): void
+    protected static function processFlightBookingPayment(array $event): void
     {
+        $meta = $event['data']['metadata'];
+        $trxRef = $meta['reference'];
+        $payerEmail = $meta['email'];
+        $trxRecordedAmount = $meta['amount'];
+        $assocOfferId = $meta['offer_id'];
+        $gatewayStatus = $event['data']['status'];
+        $presumedTrxnStatus = $gatewayStatus == 'success' ? TransactionStatus::SUCCESS->value : TransactionStatus::FAILED->value;
 
+        $user = User::whereEmail($payerEmail)->first();
+        /** @var \App\Models\Transaction $trxn */
+        $trxn = Transaction::whereUserId($user?->id)->whereReference($trxRef)->whereOfferId($assocOfferId)->first();
+        if (blank($user) || blank($trxn) || $trxn->status != 'pending') {
+            exit;
+        }
+        $trxn->update(['status' => $presumedTrxnStatus, 'raw_response' => $event]);
     }
 }

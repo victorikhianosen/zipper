@@ -13,9 +13,9 @@ class PaymentController extends Controller
 
     }
 
-    public function initiateFlightPaymenWithPaystack(): JsonResponse
+    public function makePayment(): JsonResponse
     {
-        $data = $this->paymentService->initiateFlightPaymentWithPaystack();
+        $data = $this->paymentService->makePayment();
 
         return $this->success(data: $data);
     }

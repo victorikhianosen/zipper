@@ -25,24 +25,41 @@ class PaymentService extends BaseService
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string,mixed>
      */
-    public function initiateFlightPaymentWithPaystack(): array
+    public function makePayment(): array
     {
         $data = request()->validate([
             'channel' => 'bail|required|'.Rule::in(['paystack', 'flutterwave']),
             'offer_id' => 'bail|required|exists:flight_offers,id',
         ]);
+        $channel = $data['channel'];
+
+        return match ($channel) {
+            'paystack' => $this->initiateFlightPaymentWithPaystack($data) ,
+            default => throw new CustomException('Payment method not valid')
+        };
+
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function initiateFlightPaymentWithPaystack(array $data): array
+    {
         $user = request()->user();
         $offer = $this->flightOffers->whereId($data['offer_id'])->first();
-        $flightPrice = $offer['price']['grandTotal']; //@phpstan-ignore-line
-        $departureDate = Carbon::parse($offer['departure_date']); //@phpstan-ignore-line
+        throw_if(blank($offer), CustomException::class, 'Offer unavailable');
+        $flightPrice = $offer['price']['grandTotal'];
+        $departureDate = Carbon::parse($offer['departure_date']);
         throw_if(today()->greaterThan($departureDate), CustomException::class, 'Flight date should a future date');
         $charge = $this->setting->flight_service_charge;
 
         $trxn = $this->transaction->create([
-            'user_id' => $user->id ?? null,
-            'reference' => getRandomReference('FL'),
+            'user_id' => $user->id, //@phpstan-ignore-line
+            'offer_id' => $offer->id,
+            'reference' => getRandomReference('FLP'),
             'amount' => $flightPrice + $charge,
             'description' => 'Payment for flight booking',
             'service_type' => ServiceType::FLIGHT->value,
@@ -55,12 +72,13 @@ class PaymentService extends BaseService
         return [
             'reference' => $trxn->reference,
             'amount' => $this->calculatePaystackCharge($trxn->amount) * 100,
+            'pkey' => config('vars.paystack.pub_key'),
             'meta' => [
                 'reference' => $trxn->reference,
-                'email' => $user->email ?? 'aa',
-                'pkey' => config('vars.paystack.pub_key'),
+                'email' => $user->email, //@phpstan-ignore-line
                 'type' => ServiceType::FLIGHT->value,
                 'amount' => $trxn->amount,
+                'offer_id' => $offer->id,
             ],
         ];
 
