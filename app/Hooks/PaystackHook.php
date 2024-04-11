@@ -16,11 +16,11 @@ class PaystackHook
 
         $secretKey = config('vars.paystack.sec_key');
         $input = @file_get_contents('php://input');
-        $context = ['request' => request(), 'headers' => request()->headers];
+        $context = ['request' => request()->all(), 'headers' => request()->headers];
         http_response_code(200);
         $event = request()->all();
         logger()->info($context); //@phpstan-ignore-line
-        if ($_SERVER['HTTP_X_PAYSTACK_SIGNATURE'] !== hash_hmac('sha512', $input, $secretKey)) { //@phpstan-ignore-line
+        if (@$_SERVER['HTTP_X_PAYSTACK_SIGNATURE'] !== hash_hmac('sha512', $input, $secretKey)) { //@phpstan-ignore-line
             exit;
         }
 
