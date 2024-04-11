@@ -28,7 +28,7 @@ class Amadeus
         $this->url = config('vars.amadeus.url');
         $this->clientId = config('vars.amadeus.api_key');
         $this->secret = config('vars.amadeus.secret_key');
-        $this->setToken();
+        // $this->setToken();
     }
 
     // private function client(): PendingRequest
@@ -81,6 +81,7 @@ class Amadeus
      */
     public function searchOffers(array $data): array
     {
+        $this->setToken();
         $endPoint = config('vars.amadeus.flight_offers');
         $headers = ['content-type' => 'application/json', 'Authorization' => 'Bearer '.$this->token];
         try {
@@ -106,6 +107,7 @@ class Amadeus
      */
     public function validatePrice(array $data): mixed
     {
+        $this->setToken();
         $endPoint = config('vars.amadeus.flight_offers_price');
         $headers = ['content-type' => 'application/vnd.amadeus+json', 'Authorization' => 'Bearer '.$this->token, 'X-HTTP-Method-Override' => 'GET'];
         try {
@@ -131,7 +133,7 @@ class Amadeus
      */
     public function bookFlight(array $data): mixed
     {
-        // info($data);
+        $this->setToken();
         $endPoint = config('vars.amadeus.flight_book');
         $headers = ['Accept' => 'application/vnd.amadeus+json', 'content-type' => 'application/vnd.amadeus+json', 'Authorization' => 'Bearer '.$this->token];
         try {

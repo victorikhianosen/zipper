@@ -1,5 +1,6 @@
 <?php
 
+use App\Hooks\PaystackHook;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+Route::post('paystack/hook', [PaystackHook::class, 'processHook']);
 
 Route::controller(AuthController::class)->group(function () {
     Route::post('register', 'register');
@@ -65,4 +68,5 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
             Route::get('flights', 'getFlightBookings');
         });
     });
+
 });

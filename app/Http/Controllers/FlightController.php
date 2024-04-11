@@ -20,10 +20,15 @@ class FlightController extends Controller
 
     public function getOffers(FlightOfferRequest $request): JsonResponse
     {
-
         $offers = $this->flightService->getOffers($request->validated());
 
         return $this->success(data: FlightOfferResource::collection($offers));
+    }
+
+    public function getOffer(FlightOffers $offer): JsonResponse
+    {
+
+        return $this->success(data: new FlightOfferResource($offer));
     }
 
     public function validatePrice(FlightOffers $offer): JsonResponse

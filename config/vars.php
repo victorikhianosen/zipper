@@ -9,4 +9,14 @@ return [
         'flight_offers_price' => env('AMADEUS_API_URL').'/v1/shopping/flight-offers/pricing',
         'flight_book' => env('AMADEUS_API_URL').'/v1/booking/flight-orders',
     ],
+
+    'paystack' => [
+        'pub_key' => env('PAYSTACK_PUBLIC_KEY'),
+        'sec_key' => env('PAYSTACK_SECRET_KEY'),
+    ],
+
+    'flutterwave' => [
+        'pub_key' => env('FLUTTERWAVE_PUBLIC_KEY'),
+        'sec_key' => env('FLUTTERWAVE_SECRET_KEY'),
+    ],
 ];
