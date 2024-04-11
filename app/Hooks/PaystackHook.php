@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Hooks;
+
 use App\Enums\TransactionStatus;
 use App\Models\Transaction;
 use App\Models\User;
@@ -51,6 +53,6 @@ class PaystackHook
         if (blank($user) || blank($trxn) || $trxn->status != 'pending') {
             exit;
         }
-        $trxn->update(['status' => $presumedTrxnStatus, 'raw_response' => $event]);
+        $trxn->update(['status' => $presumedTrxnStatus, 'raw_response' => $event, 'meta' => $meta]);
     }
 }

@@ -2,6 +2,11 @@
 
 namespace App\Services;
 
+use App\Enums\Status\FlightStatus;
+use App\Enums\TransactionStatus;
+use App\Exceptions\CustomException;
+use App\Models\BookFlight;
+use App\Models\Transaction;
 use App\Traits\GetsPagination;
 
 class BaseService
@@ -20,5 +25,19 @@ class BaseService
 
             return ceil(floatval($finalAmount));
         }
+    }
+
+    protected function verifyFlightPayment(string $offerId, string $reference): string|TransactionStatus
+    {
+        /** @var \App\Models\Transaction $trxn */
+        $trxn = Transaction::whereOfferId($offerId)->whereReference($reference)->first();
+        /** @var \App\Models\BookFlight $bookedFlight */
+        $bookedFlight = BookFlight::whereOfferId($offerId)->first();
+        throw_if(blank($trxn), CustomException::class, 'Payment not found');
+        if ($bookedFlight->status != FlightStatus::TRXFAILED->value && $bookedFlight->status != FlightStatus::PENDING->value) {
+            throw_if(filled($bookedFlight), CustomException::class, 'Flight already booked');
+        }
+
+        return $trxn->status;
     }
 }

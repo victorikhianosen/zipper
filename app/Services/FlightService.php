@@ -4,12 +4,14 @@ namespace App\Services;
 
 use App\Comms\Amadeus;
 use App\Enums\Status\FlightStatus;
+use App\Enums\TransactionStatus;
 use App\Exceptions\CustomException;
 use App\Http\Requests\FlightBookingRequest;
 use App\Models\BookFlight;
 use App\Models\City;
 use App\Models\FlightOffers;
 use App\Models\FlightSetting;
+use App\Models\Setting;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -23,7 +25,8 @@ class FlightService extends BaseService
         protected City $city,
         protected FlightOffers $flightOffers,
         protected BookFlight $bookFlight,
-        protected FlightSetting $setting
+        protected FlightSetting $setting,
+        protected Setting $generalSetting
     ) {
         $this->flightSetting = $this->setting->first(); // @phpstan-ignore-line
     }
@@ -116,7 +119,8 @@ class FlightService extends BaseService
         if (! array_key_exists('data', $amadeusValidatedDetail) || ! array_key_exists('flightOffers', $amadeusValidatedDetail['data'])) {
             throw new CustomException('Unable to validate price, try again');
         }
-        $price = $amadeusValidatedDetail['data']['flightOffers'][0]['price']; //@phpstan-ignore-next-line
+        $price = $amadeusValidatedDetail['data']['flightOffers'][0]['price'];
+        $offer->update(['price' => $price]); //@phpstan-ignore-next-line
         $breakdown_by_passenger = collect($amadeusValidatedDetail['data']['flightOffers'][0]['travelerPricings'])
             ->map(function ($item) {
                 return [
@@ -154,28 +158,28 @@ class FlightService extends BaseService
                 'contacts' => $meta['contacts'],
             ],
         ];
+
+        $paymentStatus = $this->verifyFlightPayment($data['offer_id'], $data['payment_reference']);
+        throw_if($paymentStatus == TransactionStatus::PENDING->value, CustomException::class, 'Payment is processing, retry in few moments');
+        if ($paymentStatus == TransactionStatus::FAILED->value) {
+            // record pending booking
+            $this->createPendingFlightBooking($rawOffer, $payload, true);
+            throw new CustomException('Flight Booking payment failed');
+        }
         // record pending booking
-        $pendingBooking = $this->bookFlight->create([
-            'locations' => $rawOffer->locations,
-            'search_meta' => $rawOffer->search_meta,
-            'request_body' => $payload,
-            'flight_order_ref' => getRandomReference('ZPP'),
-            'user_id' => auth()->id(),
-        ]);
-
-        // make payment
-
+        $pendingBooking = $this->createPendingFlightBooking($rawOffer, $payload);
         $resp = $this->amadeus->bookFlight($payload);
         try {
             DB::beginTransaction();
             if (array_key_exists('data', $resp)) {
                 $pendingBooking->update([
-                    'flight_order_ref' => $resp['data']['id'],
+                    'flight_order_ref' => $resp['data']['id'], 'offer_id' => $data['offer_id'],
                     'flight_cost' => $resp['data']['flightOffers'][0]['price']['total'], 'flight_offers' => $resp['data']['flightOffers'],
                     'passengers' => $resp['data']['travelers'], 'remarks' => $resp['data']['remarks'],
                     'ticketing_agreement' => $resp['data']['ticketingAgreement'], 'dictionaries' => $resp['dictionaries'],
                     'raw_response' => $resp['data'], 'status' => FlightStatus::COMPLETED->value,
                 ]);
+                @$rawOffer->delete();
             } else {
                 throw new CustomException('Unable to update record');
             }
@@ -287,5 +291,24 @@ class FlightService extends BaseService
         }
 
         return $data;
+    }
+
+    /**
+     * @param  array<string,mixed>  $payload
+     */
+    private function createPendingFlightBooking(FlightOffers $rawOffer, array $payload, bool $trxFailed = false): BookFlight
+    {
+        $charge = $this->generalSetting->flight_service_charge;
+        $flightPrice = $rawOffer['price']['grandTotal'] + $charge;
+
+        return $this->bookFlight->create([
+            'flight_cost' => $flightPrice,
+            'locations' => $rawOffer->locations,
+            'search_meta' => $rawOffer->search_meta,
+            'request_body' => $payload,
+            'flight_order_ref' => getRandomReference('ZPP'),
+            'user_id' => auth()->id(),
+            'status' => $trxFailed ? FlightStatus::TRXFAILED->value : FlightStatus::PENDING->value,
+        ]);
     }
 }
