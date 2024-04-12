@@ -11,10 +11,15 @@ Route::prefix('flight')->group(function () {
     Route::prefix('offers')->controller(FlightController::class)->group(function () {
         Route::post('/', 'getOffers');
         Route::get('/{offer}', 'getOffer');
-        Route::post('validate-price/{offer}', 'validatePrice');
-        Route::post('book', 'bookFlight')->middleware(['auth:sanctum']);
-        Route::get('book/{flight}', 'viewFlight')->middleware(['auth:sanctum']);
         Route::get('airlines', 'getAirlines');
+        Route::post('validate-price/{offer}', 'validatePrice');
+        Route::prefix('book')->middleware('auth:sanctum')->group(function () {
+            Route::post('/', 'bookFlight');
+            Route::get('/{flight}', 'viewFlight');
+            Route::post('retry-for-failed', 'retryBookingForFailedPayment');
+            Route::post('retry-for-pending', 'retryBookingForPendingPayment');
+        });
+
     });
 
     Route::prefix('pay')->middleware('auth:sanctum')->controller(PaymentController::class)->group(function () {

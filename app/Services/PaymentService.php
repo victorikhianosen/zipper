@@ -54,6 +54,7 @@ class PaymentService extends BaseService
         $flightPrice = $offer['price']['grandTotal'];
         $departureDate = Carbon::parse($offer['departure_date']);
         throw_if(today()->greaterThan($departureDate), CustomException::class, 'Flight date should a future date');
+        throw_if(now()->diffInMinutes(Carbon::parse($offer->updated_at)) > 60, CustomException::class, 'Offer refreshed, please start again');
         $charge = $this->setting->flight_service_charge;
 
         $trxn = $this->transaction->create([

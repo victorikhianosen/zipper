@@ -42,7 +42,7 @@ class FlightController extends Controller
     {
         $order = $this->flightService->bookFlight($request);
 
-        return $this->success(message: 'Flight booked successfully', data: $order);
+        return $this->success(message: 'Flight booking processing', data: $order);
     }
 
     public function viewFlight(BookFlight $flight): JsonResponse
@@ -54,5 +54,19 @@ class FlightController extends Controller
     public function getAirlines(): JsonResponse
     {
         return $this->success(data: $this->flightService->getAirlines());
+    }
+
+    public function retryBookingForFailedPayment(): JsonResponse
+    {
+        $data = $this->flightService->retryBookingForFailedPayment();
+
+        return $this->success(message: 'Flight booking processing', data: $data);
+    }
+
+    public function retryBookingForPendingPayment(): JsonResponse
+    {
+        $data = $this->flightService->retryBookingForPendingPayment();
+
+        return $this->success(message: 'Flight booking processing', data: $data);
     }
 }
