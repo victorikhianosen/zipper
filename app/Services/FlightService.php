@@ -12,6 +12,8 @@ use App\Models\City;
 use App\Models\FlightOffers;
 use App\Models\FlightSetting;
 use App\Models\Setting;
+use App\Models\Transaction;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -159,36 +161,26 @@ class FlightService extends BaseService
             ],
         ];
 
-        $paymentStatus = $this->verifyFlightPayment($data['offer_id'], $data['payment_reference']);
-        throw_if($paymentStatus == TransactionStatus::PENDING->value, CustomException::class, 'Payment is processing, retry in few moments');
-        if ($paymentStatus == TransactionStatus::FAILED->value) {
-            // record pending booking
-            $this->createPendingFlightBooking($rawOffer, $payload, true);
-            throw new CustomException('Flight Booking payment failed');
-        }
+        $trxn = $this->verifyFlightPayment($data['offer_id'], $data['payment_reference']);
+        $paymentStatus = $trxn->status;
         // record pending booking
         $pendingBooking = $this->createPendingFlightBooking($rawOffer, $payload);
-        $resp = $this->amadeus->bookFlight($payload);
-        try {
-            DB::beginTransaction();
-            if (array_key_exists('data', $resp)) {
-                $pendingBooking->update([
-                    'flight_order_ref' => $resp['data']['id'], 'offer_id' => $data['offer_id'],
-                    'flight_cost' => $resp['data']['flightOffers'][0]['price']['total'], 'flight_offers' => $resp['data']['flightOffers'],
-                    'passengers' => $resp['data']['travelers'], 'remarks' => $resp['data']['remarks'],
-                    'ticketing_agreement' => $resp['data']['ticketingAgreement'], 'dictionaries' => $resp['dictionaries'],
-                    'raw_response' => $resp['data'], 'status' => FlightStatus::COMPLETED->value,
-                ]);
-                @$rawOffer->delete();
-            } else {
-                throw new CustomException('Unable to update record');
-            }
-            DB::commit();
-        } catch (Throwable $th) {
-            DB::commit();
-            logger($th);
-            throw new CustomException($th->getMessage());
+
+        if ($paymentStatus == TransactionStatus::PENDING->value) {
+            $pendingBooking->update(['offer_id' => $rawOffer->id, 'status' => FlightStatus::TRXPENDING->value]);
+            $trxn->update(['book_flight_id' => $pendingBooking->id, 'meta' => ['pending_ref' => $pendingBooking->id]]);
+            throw new CustomException('Payment is processing, retry in few moments');
         }
+        if ($paymentStatus == TransactionStatus::FAILED->value) {
+            $pendingBooking->update(['offer_id' => $rawOffer->id, 'status' => FlightStatus::TRXFAILED->value]);
+            $trxn->update(['book_flight_id' => $pendingBooking->id, 'meta' => null]);
+            throw new CustomException('Flight Booking payment failed');
+        }
+        $this->requestForAmadeusBooking(
+            payload: $payload, data: $data,
+            pendingBooking: $pendingBooking,
+            rawOffer: $rawOffer, trxn: $trxn
+        );
 
         return ['booking_id' => $pendingBooking->id];
     }
@@ -310,5 +302,112 @@ class FlightService extends BaseService
             'user_id' => auth()->id(),
             'status' => $trxFailed ? FlightStatus::TRXFAILED->value : FlightStatus::PENDING->value,
         ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function retryBookingForFailedPayment(): array
+    {
+        $data = request()->validate([
+            'booking_id' => 'bail|required',
+            'payment_reference' => 'bail|required',
+        ]);
+
+        $flight = BookFlight::whereId($data['booking_id'])->first();
+        $trxn = Transaction::whereReference($data['payment_reference'])->first();
+        throw_if(blank($flight) || blank($trxn), CustomException::class, 'No record found');
+
+        // should they pass previous processed data
+        throw_if($flight->id == $trxn->book_flight_id, CustomException::class, 'Payment and booking already exist');
+        throw_if($flight->status != FlightStatus::TRXFAILED->value, 'You can only retry boooking for a failed payment');
+        throw_if(now()->diffInMinutes(Carbon::parse($flight->updated_at)) > 60, CustomException::class, 'Offer can\'t be retried, please start afresh');
+        $verifiedTrxn = $this->verifyFlightPayment($trxn->offer_id, $trxn->reference);
+        if ($verifiedTrxn->status == TransactionStatus::PENDING->value) {
+            $trxn->update(['book_flight_id' => $flight->id, 'offer_id' => $flight->offer_id, 'meta' => ['pending_ref' => $flight->id]]);
+
+            throw new CustomException('Payment processing, please try again in few moments');
+        }
+
+        if ($verifiedTrxn->status == TransactionStatus::FAILED->value) {
+            $trxn->update(['book_flight_id' => $flight->id, 'offer_id' => $flight->offer_id, 'meta' => null]);
+            $flight->update(['status' => FlightStatus::TRXFAILED->value]);
+            throw new CustomException('Booking payment failed');
+        }
+
+        $this->requestForAmadeusBooking(
+            payload: $flight->request_body, //@phpstan-ignore-line
+            pendingBooking: $flight, rawOffer: null,
+            trxn: $trxn, data: ['offer_id' => $flight->offer_id]
+        );
+
+        return ['booking_id' => $flight->id];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function retryBookingForPendingPayment(): array
+    {
+        $data = request()->validate([
+            'booking_id' => 'bail|required',
+        ]);
+
+        $flight = BookFlight::whereId($data['booking_id'])->whereStatus(FlightStatus::TRXPENDING->value)->first();
+        $trxn = Transaction::whereBookFlightId($flight?->id)->whereJsonContains('meta->pending_ref', $flight->id)->first(); //@phpstan-ignore-line
+        throw_if(blank($flight) || blank($trxn), CustomException::class, 'No record found');
+        throw_if($flight->status != FlightStatus::TRXPENDING->value, 'You can only retry boooking for a pending payment');
+        throw_if(now()->diffInMinutes(Carbon::parse($flight->updated_at)) > 60, CustomException::class, 'Offer can\'t be retried, please start afresh');
+        $verifiedTrxn = $this->verifyFlightPayment($trxn->offer_id, $trxn->reference);
+        if ($verifiedTrxn->status == TransactionStatus::PENDING->value) {
+            $trxn->update(['book_flight_id' => $flight->id, 'offer_id' => $flight->offer_id, 'meta' => ['pending_ref' => $flight->id]]);
+            $flight->update(['status' => FlightStatus::TRXPENDING->value]);
+            throw new CustomException('Payment processing, please try again in few moments');
+        }
+
+        if ($verifiedTrxn->status == TransactionStatus::FAILED->value) {
+            $trxn->update(['book_flight_id' => $flight->id, 'offer_id' => $flight->offer_id, 'meta' => null]);
+            $flight->update(['status' => FlightStatus::TRXFAILED]);
+            throw new CustomException('Booking payment failed');
+        }
+
+        $this->requestForAmadeusBooking(
+            payload: $flight->request_body, //@phpstan-ignore-line
+            pendingBooking: $flight, rawOffer: null,
+            trxn: $trxn, data: ['offer_id' => $flight->offer_id]
+        );
+
+        return ['booking_id' => $flight->id];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $data
+     */
+    private function requestForAmadeusBooking(array $payload, array $data, BookFlight $pendingBooking, ?FlightOffers $rawOffer, Transaction $trxn): void
+    {
+        $resp = $this->amadeus->bookFlight($payload);
+        try {
+            DB::beginTransaction();
+            if (array_key_exists('data', $resp)) {
+                $pendingBooking->update([
+                    'flight_order_ref' => $resp['data']['id'], 'offer_id' => $data['offer_id'],
+                    'flight_cost' => $resp['data']['flightOffers'][0]['price']['total'], 'flight_offers' => $resp['data']['flightOffers'],
+                    'passengers' => $resp['data']['travelers'], 'remarks' => $resp['data']['remarks'],
+                    'ticketing_agreement' => $resp['data']['ticketingAgreement'], 'dictionaries' => $resp['dictionaries'],
+                    'raw_response' => $resp['data'], 'status' => FlightStatus::COMPLETED->value,
+                ]);
+                @$rawOffer?->delete();
+                $trxn->update(['book_flight_id' => $pendingBooking->id, 'meta' => null]);
+            } else {
+                // $pendingBooking->update(['status' => FlightStatus::FAILED->value]);
+                throw new CustomException('Unable to update record');
+            }
+            DB::commit();
+        } catch (Throwable $th) {
+            DB::commit();
+            logger($th);
+            throw new CustomException($th->getMessage());
+        }
     }
 }

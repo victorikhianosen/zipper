@@ -11,4 +11,5 @@ enum FlightStatus: string
     case CANCELED = 'canceled';
     case PENDING = 'pending';
     case TRXFAILED = 'trxfailed';
+    case TRXPENDING = 'trxpending';
 }
