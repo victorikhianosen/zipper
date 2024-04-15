@@ -23,7 +23,7 @@ Route::controller(AuthController::class)->group(function () {
     });
 });
 
-Route::group(['middleware' => 'auth:sanctum'], function () {
+Route::group(['middleware' => 'auth:admin'], function () {
     Route::prefix('updates')->controller(AppUpdateController::class)->group(function () {
         Route::post('create', 'create');
         Route::put('edit', 'edit');
