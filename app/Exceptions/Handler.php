@@ -84,6 +84,9 @@ class Handler extends ExceptionHandler
             if ($exception instanceof CustomException) {
                 return $this->failure($exception->getMessage(), code: $exception->getCode());
             }
+            if ($exception instanceof AmadeusException) {
+                return $this->failure($exception->getMessage());
+            }
         }
 
         return parent::render($request, $exception);
