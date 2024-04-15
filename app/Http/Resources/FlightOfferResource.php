@@ -21,7 +21,7 @@ class FlightOfferResource extends JsonResource
         $segmentLoopArray = [];
         $details = [
             'id' => $data['id'], // @phpstan-ignore-line
-            'total' => $data['price']['currency'].''.$data['price']['total'], // @phpstan-ignore-line
+            'total' => $data['price']['currency'].''.$data['price']['grandTotal'], // @phpstan-ignore-line
             'departure_from' => $data['locations']['from_city'].'('.$data['locations']['from_code'].')', // @phpstan-ignore-line
             'arrival_to' => $data['locations']['to_city'].'('.$data['locations']['to_code'].')', // @phpstan-ignore-line
             'trip_type' => $data['raw_offer_response']['oneWay'] == false ? 'Round-Trip' : 'One-Way', // @phpstan-ignore-line

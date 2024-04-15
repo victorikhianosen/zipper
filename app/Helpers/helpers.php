@@ -23,9 +23,14 @@ if (! function_exists('getAirlineMeta')) {
 
 if (! function_exists('getRandomReference')) {
 
-    function getRandomReference(string $prefix): string
+    function getRandomReference(string $prefix, int $length = 10): string
     {
-        return strtoupper($prefix).time().mt_rand(1000, 9999);
+        return strtoupper(
+            $prefix.
+            bin2hex(
+                random_bytes($length) //@phpstan-ignore-line
+            )
+        );
     }
 }
 

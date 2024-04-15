@@ -17,7 +17,8 @@ trait RespondsWithHttpStatus
         ?string $message = 'Request successful.',
         Collection|JsonResource|Model|array $data = [],
         array $meta = [],
-        int $code = 200
+        int $code = 200,
+        string $statusMessage = 'success'
     ): JsonResponse {
         $res['message'] = $message;
 
@@ -37,7 +38,8 @@ trait RespondsWithHttpStatus
     public function failure(
         ?string $message = 'Request failed.',
         array $errors = [],
-        int $code = 400
+        int $code = 400,
+        string $statusMessage = 'failed'
     ): JsonResponse {
         $res['message'] = $message;
         if ($errors) {

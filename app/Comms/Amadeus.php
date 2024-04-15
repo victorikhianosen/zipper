@@ -2,6 +2,7 @@
 
 namespace App\Comms;
 
+use App\Exceptions\AmadeusException;
 use App\Exceptions\CustomException;
 use Exception;
 use Illuminate\Http\Client\PendingRequest;
@@ -92,11 +93,14 @@ class Amadeus
             );
             Log::info($response);
             if (array_key_exists('errors', $response) || ! array_key_exists('data', $response)) {
-                throw new CustomException('');
+                throw new AmadeusException(
+                    $response['errors'][0]['detail'],
+                    $response['errors'][0]['code']
+                );
             }
         } catch (\Throwable $th) {
             Log::error($th);
-            throw new CustomException('Error fetching offers, try again');
+            throw $th;
         }
 
         return $response;
@@ -118,11 +122,14 @@ class Amadeus
             );
             logger($response); //@phpstan-ignore-line
             if (array_key_exists('errors', $response) || ! array_key_exists('data', $response)) {
-                throw new CustomException('');
+                throw new AmadeusException(
+                    $response['errors'][0]['detail'],
+                    $response['errors'][0]['code']
+                );
             }
         } catch (\Throwable $th) {
             logger($th);
-            throw new CustomException('Unable to validate details, try again');
+            throw $th;
         }
 
         return $response;
@@ -144,7 +151,10 @@ class Amadeus
             );
             logger($response); //@phpstan-ignore-line
             if (array_key_exists('errors', $response) || ! array_key_exists('data', $response)) {
-                throw new CustomException('');
+                throw new AmadeusException(
+                    $response['errors'][0]['detail'],
+                    $response['errors'][0]['code']
+                );
             }
         } catch (\Throwable $th) {
             logger($th);
