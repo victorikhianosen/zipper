@@ -24,7 +24,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Request::macro('resolveActionName', function () {
-            info(strtoupper(bin2hex(random_bytes(5))));
             $actionName = resolve(Route::class)->getActionName();
 
             return substr($actionName, strpos($actionName, '@') + 1);
