@@ -43,6 +43,7 @@ trait RespondsWithHttpStatus
         string $statusMessage = 'failed'
     ): JsonResponse {
         $res['message'] = $message;
+        $res['statusMessage'] = $statusMessage;
         if ($errors) {
             $res['errors'] = $errors;
         }
