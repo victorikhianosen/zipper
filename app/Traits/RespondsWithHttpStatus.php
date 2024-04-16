@@ -21,6 +21,7 @@ trait RespondsWithHttpStatus
         string $statusMessage = 'success'
     ): JsonResponse {
         $res['message'] = $message;
+        $res['statusMessage'] = $statusMessage;
 
         if ($data) {
             $res['data'] = $data;
@@ -42,6 +43,7 @@ trait RespondsWithHttpStatus
         string $statusMessage = 'failed'
     ): JsonResponse {
         $res['message'] = $message;
+        $res['statusMessage'] = $statusMessage;
         if ($errors) {
             $res['errors'] = $errors;
         }
