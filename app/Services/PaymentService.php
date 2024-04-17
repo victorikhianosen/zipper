@@ -73,6 +73,13 @@ class PaymentService extends BaseService
         return [
             'reference' => $trxn->reference,
             'amount' => $this->calculatePaystackCharge($trxn->amount) * 100,
+            'break_down' => [
+                'flight_amount' => $flightPrice,
+                'service_charge' => $charge,
+                'gateway_charge' => $this->calculatePaystackCharge($trxn->amount) - $trxn->amount,
+                'total_in_kobo' => $this->calculatePaystackCharge($trxn->amount) * 100,
+                'total_in_naira' => $this->calculatePaystackCharge($trxn->amount),
+            ],
             'pkey' => config('vars.paystack.pub_key'),
             'meta' => [
                 'reference' => $trxn->reference,
