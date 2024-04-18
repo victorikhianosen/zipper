@@ -46,13 +46,16 @@ class PaystackHook
         $trxRecordedAmount = $meta['amount'];
         $assocOfferId = $meta['offer_id'];
         $gatewayStatus = $event['data']['status'];
-        $presumedTrxnStatus = $gatewayStatus == 'success' ? TransactionStatus::SUCCESS->value : TransactionStatus::FAILED->value;
+        $presumedTrxnStatus = match ($gatewayStatus) {
+            'success' => TransactionStatus::SUCCESS->value,
+            'failed' => TransactionStatus::FAILED->value,
+            'pending' => TransactionStatus::PENDING->value,
+            default => TransactionStatus::PENDING->value
+        };
 
         $user = User::whereEmail($payerEmail)->first();
-        logger($user);
         /** @var \App\Models\Transaction $trxn */
         $trxn = Transaction::whereUserId($user?->id)->whereReference($trxRef)->whereOfferId($assocOfferId)->first();
-        logger($trxn->status);
         if (blank($user) || blank($trxn) || $trxn->status != 'pending') {
             exit;
         }

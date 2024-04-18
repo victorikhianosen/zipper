@@ -236,7 +236,7 @@ class FlightService extends BaseService
 
         $ticketAgreement = [
             'option' => $this->flightSetting->flight_ticket_option,
-            'delay' => $this->flightSetting->delay,
+            'delay' => strval($this->flightSetting->delay).'D',
         ];
 
         $contacts = [[
