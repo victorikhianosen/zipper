@@ -53,6 +53,7 @@ class FlightController extends Controller
 
     public function getAirlines(): JsonResponse
     {
+
         return $this->success(data: $this->flightService->getAirlines());
     }
 
