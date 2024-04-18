@@ -27,10 +27,9 @@ class PaystackHook
         if ($event['event'] != 'charge.success' || ! $event['data']['metadata']) {
             exit;
         }
-        info($event['data']['metadata']);
         if ($event['data']['metadata']['type'] == 'flight') {
 
-            self::processFlightBookingPayment($event);
+            $this->processFlightBookingPayment($event);
         }
 
     }
@@ -38,7 +37,7 @@ class PaystackHook
     /**
      * @param  array<string,mixed>  $event
      */
-    protected static function processFlightBookingPayment(array $event): void
+    protected function processFlightBookingPayment(array $event): void
     {
         $meta = $event['data']['metadata'];
         $trxRef = $meta['reference'];
