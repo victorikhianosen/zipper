@@ -33,7 +33,7 @@ class BaseService
         /** @var \App\Models\BookFlight $bookedFlight */
         $bookedFlight = BookFlight::whereOfferId($offerId)->first();
         throw_if(blank($trxn), CustomException::class, 'Payment not found');
-        if ($bookedFlight->status != FlightStatus::TRXFAILED->value || $bookedFlight->status != FlightStatus::PENDING->value) {
+        if ($bookedFlight && ($bookedFlight->status != FlightStatus::TRXFAILED->value || $bookedFlight->status != FlightStatus::PENDING->value)) {
             throw_if(filled($bookedFlight), CustomException::class, 'Flight already booked');
         }
 

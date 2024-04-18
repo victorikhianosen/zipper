@@ -27,6 +27,7 @@ class PaystackHook
         if ($event['event'] != 'charge.success' || ! $event['data']['metadata']) {
             exit;
         }
+        info($event['data']['metadata']);
         if ($event['data']['metadata']['type'] == 'flight') {
 
             self::processFlightBookingPayment($event);
