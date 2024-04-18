@@ -51,6 +51,8 @@ class Handler extends ExceptionHandler
 
         if ($request->expectsJson()) {
             if ($exception instanceof ModelNotFoundException) {
+                logger($exception);
+
                 return $this->failure('Model not found, the specified model could not be found.');
             }
             if ($exception instanceof MethodNotAllowedHttpException) {

@@ -9,9 +9,9 @@ Route::prefix('flight')->group(function () {
 
     Route::get('cities', [CityController::class, 'getCities']);
     Route::prefix('offers')->controller(FlightController::class)->group(function () {
+        Route::get('airlines', 'getAirlines');
         Route::post('/', 'getOffers');
         Route::get('/{offer}', 'getOffer');
-        Route::get('airlines', 'getAirlines');
         Route::post('validate-price/{offer}', 'validatePrice');
         Route::prefix('book')->middleware('auth:sanctum')->group(function () {
             Route::post('/', 'bookFlight');
