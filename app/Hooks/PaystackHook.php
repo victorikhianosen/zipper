@@ -39,6 +39,7 @@ class PaystackHook
      */
     protected function processFlightBookingPayment(array $event): void
     {
+        logger()->warning('method called');
         $meta = $event['data']['metadata'];
         $trxRef = $meta['reference'];
         $payerEmail = $meta['email'];
@@ -48,8 +49,10 @@ class PaystackHook
         $presumedTrxnStatus = $gatewayStatus == 'success' ? TransactionStatus::SUCCESS->value : TransactionStatus::FAILED->value;
 
         $user = User::whereEmail($payerEmail)->first();
+        logger($user);
         /** @var \App\Models\Transaction $trxn */
         $trxn = Transaction::whereUserId($user?->id)->whereReference($trxRef)->whereOfferId($assocOfferId)->first();
+        logger($trxn->status);
         if (blank($user) || blank($trxn) || $trxn->status != 'pending') {
             exit;
         }

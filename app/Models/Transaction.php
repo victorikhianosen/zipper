@@ -25,7 +25,7 @@ class Transaction extends Model
         'transaction_type' => TransactionType::class,
         'category' => TransactionCat::class,
         'gateway' => Gateway::class,
-        'status' => TransactionStatus::class,
+        // 'status' => TransactionStatus::class,
 
     ];
 
