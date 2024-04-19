@@ -17,6 +17,7 @@ return new class extends Migration
                 $table->json('request_body')->nullable();
                 $table->string('status')->default(FlightStatus::PENDING->value);
                 $table->string('tracking_status')->default(FlightStatus::UPCOMING->value);
+                $table->string('payment_status')->nullable();
             });
         });
     }
