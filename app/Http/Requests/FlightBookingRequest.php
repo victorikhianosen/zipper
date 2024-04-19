@@ -90,7 +90,7 @@ class FlightBookingRequest extends FormRequest
             'passengers.*.contact.phones.*.device_type.in' => 'Supported passenger device types are MOBILE,LANDLINE,FAX',
             'passengers.*.gender.required' => 'The passenger gender is required',
             'passengers.*.gender.in' => 'The passenger can either be a MALE  or FEMALE',
-            'passengers.*.contact.phones.*.country_calling_code.required' => 'The passenger country code is required.',
+            'passengers.*.contact.phones.*.country_calling_code.required' => 'The passenger country calling code is required.',
             'passengers.*.contact.required' => 'The passenger country code is required.',
             'passengers.*.contact.phones.*.number.required' => 'Passenger phone number is required',
             'passengers.*.documents.*.document_type.in' => 'Document type not supported',
