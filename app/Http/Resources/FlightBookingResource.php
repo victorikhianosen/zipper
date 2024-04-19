@@ -41,6 +41,7 @@ class FlightBookingResource extends JsonResource
             ->toArray();
         $pricing['grand_total'] = $data['flight_offers'][0]['price']['grandTotal'];
         $details = [
+            'user' => array_key_exists('user', $data) ? $data['user'] : null,
             'id' => $data['id'],
             'tracking_status' => $data['tracking_status'] ?? null,
             'booking_status' => $data['status'] ?? null,

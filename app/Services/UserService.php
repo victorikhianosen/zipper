@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\BookFlight;
 use App\Models\Transaction;
+use App\Models\User;
 
 class UserService extends BaseService
 {
@@ -60,5 +61,15 @@ class UserService extends BaseService
 
         return $this->paginate(query: $flights);
 
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getUsers(): array
+    {
+        $query = User::query();
+
+        return $this->paginate(query: $query);
     }
 }
