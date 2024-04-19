@@ -14,9 +14,10 @@ class FlightBookingResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        /** @var array<mixed, mixed> $data */
         $data = parent::toArray($request);
-        $itineraries = $data['flight_offers'][0]['itineraries']; // @phpstan-ignore-line
-        $search_meta = $data['search_meta']; // @phpstan-ignore-line
+        $itineraries = $data['flight_offers'][0]['itineraries'];
+        $search_meta = $data['search_meta'];
         $segmentLoopArray = []; // @phpstan-ignore-next-line
         $travelers = collect($data['passengers'])
             ->map(function ($item) {
@@ -38,13 +39,14 @@ class FlightBookingResource extends JsonResource
                 ];
             })
             ->toArray();
-        $pricing['grand_total'] = $data['flight_offers'][0]['price']['grandTotal']; // @phpstan-ignore-line
+        $pricing['grand_total'] = $data['flight_offers'][0]['price']['grandTotal'];
         $details = [
+            'id' => $data['id'],
             'tracking_status' => $data['tracking_status'] ?? null,
             'booking_status' => $data['status'] ?? null,
             'passenger_count' => $search_meta['no_of_children'] + $search_meta['no_of_adult'] + $search_meta['no_of_infant'],
             'queries' => $search_meta,
-            'locations' => $data['locations'], // @phpstan-ignore-line
+            'locations' => $data['locations'],
             'passengers' => $travelers,
             'pricing' => $pricing,
         ];
@@ -64,6 +66,10 @@ class FlightBookingResource extends JsonResource
             }
             $details['itineraries'][$itTrip] = $segmentLoopArray; // @phpstan-ignore-line
             unset($segmentLoopArray);
+        }
+
+        if (array_key_exists('transactions', $data)) {
+            $details['transactions'] = $data['transactions'];
         }
 
         return $details;

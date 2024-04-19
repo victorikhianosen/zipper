@@ -10,13 +10,14 @@ use App\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transaction extends Model
 {
     use HasFactory;
     use HasUuids;
 
-    protected $hidden = ['created_at'];
+    protected $hidden = ['created_at', 'raw_response'];
 
     protected $casts = [
         'meta' => 'json',
@@ -30,4 +31,14 @@ class Transaction extends Model
     ];
 
     protected $guarded = [];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function flight(): BelongsTo
+    {
+        return $this->belongsTo(BookFlight::class, 'book_flight_id');
+    }
 }
