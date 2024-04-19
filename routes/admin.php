@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\AppUpdateController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\FaqCategoryController;
 use App\Http\Controllers\Admin\FaqController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FlightSettingController;
 use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
@@ -23,7 +25,7 @@ Route::controller(AuthController::class)->group(function () {
     });
 });
 
-Route::group(['middleware' => 'auth:admin'], function () {
+Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::prefix('updates')->controller(AppUpdateController::class)->group(function () {
         Route::post('create', 'create');
         Route::put('edit', 'edit');
@@ -62,5 +64,16 @@ Route::group(['middleware' => 'auth:admin'], function () {
         Route::get('single-faq/{faq}', 'singleFaq');
         Route::put('edit-faq/{faq}', 'editFaq');
         Route::delete('delete-faq/{faq}', 'deleteFaq');
+    });
+
+    Route::prefix('users')->controller(AdminController::class)->group(function () {
+        Route::get('all', 'getUsers');
+        Route::get('{user}/flight-bookings', 'getUserFlightBookings');
+    });
+
+    Route::prefix('dashboard')->controller(DashboardController::class)->group(function () {
+        Route::get('index', 'dashboardIndex');
+        Route::get('flight-bookings', 'getFlightBookings');
+        Route::get('transactions', 'getTransactions');
     });
 });
