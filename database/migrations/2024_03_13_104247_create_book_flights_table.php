@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('book_flights', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->unique()->nullable()->constrained()->nullOnDelete();
+            $table->foreignUuid('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('flight_order_ref');
             $table->unsignedDouble('flight_cost')->default(0);
 

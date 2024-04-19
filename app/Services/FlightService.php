@@ -111,12 +111,14 @@ class FlightService extends BaseService
     {
 
         $rawOffer = $offer?->raw_offer_response; //@phpstan-ignore-line
+
         $payload = [
             'data' => [
                 'type' => 'flight-offers-pricing',
                 'flightOffers' => [$rawOffer],
             ],
         ];
+
         $amadeusValidatedDetail = $this->amadeus->validatePrice($payload);
         if (! array_key_exists('data', $amadeusValidatedDetail) || ! array_key_exists('flightOffers', $amadeusValidatedDetail['data'])) {
             throw new CustomException('Unable to validate price, try again');
