@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Enums\Status\FlightStatus;
+use App\Enums\TransactionStatus;
 use App\Exceptions\CustomException;
 use App\Models\BookFlight;
 use App\Models\Transaction;
@@ -31,9 +31,9 @@ class BaseService
         /** @var \App\Models\Transaction $trxn */
         $trxn = Transaction::whereOfferId($offerId)->whereReference($reference)->first();
         /** @var \App\Models\BookFlight $bookedFlight */
-        $bookedFlight = BookFlight::whereOfferId($offerId)->first();
+        $bookedFlight = BookFlight::whereOfferId($offerId)->whereUserId($trxn->user_id)->first();
         throw_if(blank($trxn), CustomException::class, 'Payment not found');
-        if ($bookedFlight && ($bookedFlight->status != FlightStatus::TRXFAILED->value || $bookedFlight->status != FlightStatus::PENDING->value)) {
+        if ($bookedFlight && ($bookedFlight->payment_status == TransactionStatus::SUCCESS->value)) {
             throw_if(filled($bookedFlight), CustomException::class, 'Flight already booked');
         }
 

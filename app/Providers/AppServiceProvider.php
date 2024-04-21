@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Mixins\BuilderMixins;
 use App\Models\PersonalAccessToken;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
@@ -28,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
 
             return substr($actionName, strpos($actionName, '@') + 1);
         });
+        Builder::mixin(new BuilderMixins());
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
     }
 }
