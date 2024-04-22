@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\TransactionStatus;
 use App\Models\BookFlight;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
@@ -28,6 +29,7 @@ class FlightTrackingStatusUpdater extends Command
     public function handle(): void
     {
         BookFlight::whereStatus('completed')
+            ->wherePaymentStatus(TransactionStatus::SUCCESS->value)
             ->where('tracking_status', '!=', 'completed')
             ->chunk(500, function ($flights) {
                 foreach ($flights as $flight) {
