@@ -74,6 +74,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::prefix('dashboard')->controller(DashboardController::class)->group(function () {
         Route::get('index', 'dashboardIndex');
         Route::get('flight-bookings', 'getFlightBookings');
+        Route::get('single-flight-booking/{flight}', 'getSingleFlightBooking');
         Route::get('transactions', 'getTransactions');
     });
 });

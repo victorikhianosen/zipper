@@ -27,7 +27,7 @@ class DashboardService extends BaseService
      */
     public function getFlightBookings(): array
     {
-        $query = BookFlight::withRelationAndColumns('user', ['email']);
+        $query = BookFlight::withRelationAndColumns('user', ['email', 'first_name', 'last_name', 'phone']);
 
         return $this->paginate($query);
     }
@@ -37,7 +37,7 @@ class DashboardService extends BaseService
      */
     public function getTransactions(): array
     {
-        $query = Transaction::withRelationAndColumns('user', ['email']);
+        $query = Transaction::withRelationAndColumns('user', ['email', 'first_name', 'last_name', 'phone']);
 
         return $this->paginate($query);
     }
