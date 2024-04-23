@@ -162,28 +162,59 @@ class FlightService extends BaseService
             ],
         ];
 
-        $trxn = $this->verifyFlightPayment($data['offer_id'], $data['payment_reference']);
-        $paymentStatus = $trxn->status;
+        // $trxn = $this->verifyFlightPayment($data['offer_id'], $data['payment_reference']);
+        // $paymentStatus = $trxn->status;
         // record pending booking
-        $pendingBooking = $this->createPendingFlightBooking($rawOffer, $payload, $paymentStatus);
+        $pendingBooking = $this->createPendingFlightBooking($rawOffer, $payload);
 
-        if ($paymentStatus == TransactionStatus::PENDING->value) {
-            $pendingBooking->update(['offer_id' => $rawOffer->id]);
-            $trxn->update(['book_flight_id' => $pendingBooking->id, 'temp_booking_ref' => $pendingBooking->id]);
-            throw new CustomException('Payment is processing, retry in few moments');
-        }
-        if ($paymentStatus == TransactionStatus::FAILED->value) {
-            $pendingBooking->update(['offer_id' => $rawOffer->id, 'payment_status' => TransactionStatus::FAILED->value]);
-            $trxn->update(['book_flight_id' => $pendingBooking->id, 'temp_booking_ref' => null]);
-            throw new CustomException('Flight Booking payment failed');
-        }
-        $this->requestForAmadeusBooking(
-            payload: $payload, data: $data,
-            pendingBooking: $pendingBooking,
-            rawOffer: $rawOffer, trxn: $trxn
-        );
+        // if ($paymentStatus == TransactionStatus::PENDING->value) {
+        //     $pendingBooking->update(['offer_id' => $rawOffer->id]);
+        //     $trxn->update(['book_flight_id' => $pendingBooking->id, 'temp_booking_ref' => $pendingBooking->id]);
+        //     throw new CustomException('Payment is processing, retry in few moments');
+        // }
+        // if ($paymentStatus == TransactionStatus::FAILED->value) {
+        //     $pendingBooking->update(['offer_id' => $rawOffer->id, 'payment_status' => TransactionStatus::FAILED->value]);
+        //     $trxn->update(['book_flight_id' => $pendingBooking->id, 'temp_booking_ref' => null]);
+        //     throw new CustomException('Flight Booking payment failed');
+        // }
+        // $this->requestForAmadeusBooking(
+        //     payload: $payload, data: $data,
+        //     pendingBooking: $pendingBooking,
+        //     rawOffer: $rawOffer, trxn: $trxn
+        // );
 
         return ['booking_id' => $pendingBooking->id];
+    }
+
+    /**
+     * @return array<string, mixed> | \App\Models\BookFlight
+     */
+    public function completeFlightBooking(): array|BookFlight
+    {
+        $data = request()->validate([
+            'booking_id' => 'bail|required|exists:book_flights,id',
+        ]);
+
+        $trxn = Transaction::whereBookingFlightId($data['booking_id'])
+            ->latest('updated_at')->first();
+        $pendingBooking = BookFlight::whereId($data['booking_id'])->first();
+        throw_if(blank($trxn), CustomException::class, 'Payment not found');
+        throw_if($trxn->status == TransactionStatus::PENDING->value, CustomException::class, 'Payment is processing, try again');
+        if ($trxn->status == TransactionStatus::FAILED->value) {
+            $pendingBooking?->update(['payment_status' => TransactionStatus::FAILED->value]);
+            throw new CustomException('Payment was not successful');
+        }
+        $rawOffer = FlightOffers::whereId($pendingBooking?->offer_id)->first();
+        throw_if(blank($rawOffer), CustomException::class, 'Offer refreshed, please start again');
+        $this->requestForAmadeusBooking(
+            payload : $pendingBooking->request_body, //@phpstan-ignore-line
+            data: ['offer_id' => $pendingBooking?->offer_id],
+            rawOffer: $rawOffer,
+            pendingBooking: $pendingBooking, //@phpstan-ignore-line
+            trxn: $trxn
+        );
+
+        return ['booking_id' => $pendingBooking?->id];
     }
 
     /**
@@ -289,7 +320,7 @@ class FlightService extends BaseService
     /**
      * @param  array<string,mixed>  $payload
      */
-    private function createPendingFlightBooking(FlightOffers $rawOffer, array $payload, string $paymentStatus): BookFlight
+    private function createPendingFlightBooking(FlightOffers $rawOffer, array $payload): BookFlight
     {
         $charge = $this->generalSetting->flight_service_charge;
         $flightPrice = $rawOffer['price']['grandTotal'] + $charge;
@@ -302,7 +333,7 @@ class FlightService extends BaseService
             'flight_order_ref' => getRandomReference('ZPP'),
             'user_id' => auth()->id(),
             'status' => FlightStatus::PENDING->value,
-            'payment_status' => $paymentStatus,
+            'payment_status' => TransactionStatus::PENDING->value,
         ]);
     }
 
