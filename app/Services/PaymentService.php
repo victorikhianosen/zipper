@@ -32,6 +32,7 @@ class PaymentService extends BaseService
         $data = request()->validate([
             'channel' => 'bail|required|'.Rule::in(['paystack', 'flutterwave']),
             'offer_id' => 'bail|required|exists:flight_offers,id',
+            'booking_id' => 'bail|required|exists:book_flights,id',
         ]);
         $channel = $data['channel'];
 
@@ -69,6 +70,7 @@ class PaymentService extends BaseService
             'category' => TransactionCat::FLIGHTBOOKING->value,
             'gateway' => Gateway::PAYSTACK->value,
             'status' => TransactionStatus::PENDING->value,
+            'book_flight_id' => $data['booking_id'],
         ]);
 
         return [

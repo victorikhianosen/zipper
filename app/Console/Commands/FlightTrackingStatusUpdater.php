@@ -87,7 +87,6 @@ class FlightTrackingStatusUpdater extends Command
             $lastSegment = $segments[count($segments) - 1]; //@phpstan-ignore-line
             $arrivalDate = $lastSegment['arrival']['at'];
             $this->updateTrackingStatus(date: $arrivalDate, flight: $flight);
-            logger($arrivalDate);
         }
     }
 }

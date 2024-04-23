@@ -70,4 +70,11 @@ class FlightController extends Controller
 
         return $this->success(message: 'Flight booking processing', data: $data);
     }
+
+    public function completeFlightBooking(): JsonResponse
+    {
+        $data = $this->flightService->completeFlightBooking();
+
+        return $this->success(message: 'Flight booking processing', data: $data);
+    }
 }
