@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\FlightBookingResource;
+use App\Models\BookFlight;
 use App\Services\DashboardService;
 use Illuminate\Http\JsonResponse;
 
@@ -26,6 +27,11 @@ class DashboardController extends Controller
         $flights = $this->dashboardService->getFlightBookings();
 
         return $this->success(data: FlightBookingResource::collection($flights['data']), meta: $flights['meta']);
+    }
+
+    public function getSingleFlightBooking(BookFlight $flight): JsonResponse
+    {
+        return $this->success(data: new FlightBookingResource($flight->load('user:id,email,first_name,last_name,phone')));
     }
 
     public function getTransactions(): JsonResponse
