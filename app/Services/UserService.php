@@ -20,11 +20,20 @@ class UserService extends BaseService
      */
     public function myFlightBookings(): array
     {
-        $filter = request()->query('filter');
+        $filter = request()->query('status');
+        $search = request()->query('search');
         $user = request()->user();
         $flights = $this->bookFlight->where('user_id', $user->id)->with(['transactions']); //@phpstan-ignore-line
         if (filled($filter)) {
-            $flights->whereTrackingStatus($filter);
+            match ($filter) {
+                'pending' => $flights->whereStatus($filter) ,
+                'failed' => $flights->whereStatus($filter)  ,
+                default => $flights->whereTrackingStatus($filter)
+            };
+        }
+
+        if (filled($search)) {
+
         }
 
         return $this->paginate(query: $flights);

@@ -17,6 +17,7 @@ class AmadeusException extends Exception
     {
         return match (strval($code)) {
             '4926' => 'Invalid data received',
+            '141' => 'System error has occured',
             default => 'Something isn\'t just right',
         };
     }
