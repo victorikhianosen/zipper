@@ -3,6 +3,7 @@
 namespace App\Hooks;
 
 use App\Enums\TransactionStatus;
+use App\Models\BookFlight;
 use App\Models\Transaction;
 use App\Models\User;
 
@@ -56,9 +57,11 @@ class PaystackHook
         $user = User::whereEmail($payerEmail)->first();
         /** @var \App\Models\Transaction $trxn */
         $trxn = Transaction::whereUserId($user?->id)->whereReference($trxRef)->whereOfferId($assocOfferId)->first();
+        $flight = BookFlight::whereId($trxn->booking_flight_id)->first(); //@phpstan-ignore-line
         if (blank($user) || blank($trxn) || $trxn->status != 'pending') {
             exit;
         }
         $trxn->update(['status' => $presumedTrxnStatus, 'raw_response' => $event, 'meta' => $meta]);
+        $flight->update(['payment_status' => $presumedTrxnStatus]); //@phpstan-ignore-line
     }
 }
