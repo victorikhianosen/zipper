@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\BookFlight;
 use App\Models\Transaction;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 
 class UserService extends BaseService
 {
@@ -33,7 +34,7 @@ class UserService extends BaseService
         }
 
         if (filled($search)) {
-
+            // $this->addSearchQuery($flights, $search);
         }
 
         return $this->paginate(query: $flights);
@@ -81,4 +82,12 @@ class UserService extends BaseService
 
         return $this->paginate(query: $query);
     }
+
+    // private function addSearchQuery(BookFlight|Builder $flights, string|array $search): BookFlight|Builder
+    // {
+    //     return $flights
+    //         // ->orWhereJsonContains('search_meta->trip_type', 'like', "%$search%")
+    //         // ->orWhereJsonContains('search_meta->flight_class', 'like', "%$search%")
+    //         ->orWhere('carrier', 'like', "%$search%");
+    // }
 }

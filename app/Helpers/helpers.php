@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\FlightSetting;
+
 if (! function_exists('getAirlineMeta')) {
     /**
      * @return array<string, mixed>
@@ -54,5 +56,15 @@ if (! function_exists('getAirportMeta')) {
             'state' => $info?->state,
             'country' => $info?->country,
         ];
+    }
+}
+
+if (! function_exists('getPointBonus')) {
+    function getPointBonus(float $amount): float
+    {
+        $percentage = FlightSetting::first()->point_bonus_percentage ?? 0;
+        $point = ($amount * ($percentage / 100));
+
+        return $point;
     }
 }

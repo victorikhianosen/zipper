@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\Gateway;
 use App\Enums\ServiceType;
 use App\Enums\TransactionCat;
-use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
