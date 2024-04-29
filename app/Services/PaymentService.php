@@ -29,11 +29,12 @@ class PaymentService extends BaseService
      */
     public function makePayment(): array
     {
+        $messages = ['booking_id.required' => 'Booking is required'];
         $data = request()->validate([
             'channel' => 'bail|required|'.Rule::in(['paystack', 'flutterwave']),
             'offer_id' => 'bail|required|exists:flight_offers,id',
             'booking_id' => 'bail|required|exists:book_flights,id',
-        ]);
+        ], $messages);
         $channel = $data['channel'];
 
         return match ($channel) {

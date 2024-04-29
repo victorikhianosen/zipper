@@ -34,6 +34,7 @@ class FlightSettingRequest extends FormRequest
             'city_name' => 'bail|required',
             'country_code' => 'bail|required',
             'delay' => 'bail|numeric|required',
+            'point_bonus_percentage' => 'bail|numeric|required',
             'flight_ticket_option' => 'bail|required|'.Rule::in(['CONFIRM', 'DELAY_TO_QUEUE', 'DELAY_TO_CANCEL']),
         ];
     }

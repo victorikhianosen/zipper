@@ -13,12 +13,18 @@ Route::prefix('flight')->group(function () {
         Route::post('/', 'getOffers');
         Route::get('/{offer}', 'getOffer');
         Route::post('validate-price/{offer}', 'validatePrice');
+
+        Route::prefix('wishlist')->middleware(['auth:sanctum'])->group(function () {
+            Route::put('add/{offer}', 'addToWishlist');
+            Route::delete('remove/{offer}', 'deleteFromWishlist');
+            Route::get('all', 'getWishLists');
+        });
+
         Route::prefix('book')->middleware('auth:sanctum')->group(function () {
             Route::post('/', 'bookFlight');
             Route::get('/{flight}', 'viewFlight');
             Route::post('complete-flight-booking', 'completeFlightBooking');
             Route::post('retry-for-failed', 'retryBookingForFailedPayment');
-
             Route::post('retry-for-pending', 'retryBookingForPendingPayment');
         });
 
