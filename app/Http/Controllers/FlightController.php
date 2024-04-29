@@ -8,13 +8,15 @@ use App\Http\Resources\FlightBookingResource;
 use App\Http\Resources\FlightOfferResource;
 use App\Models\BookFlight;
 use App\Models\FlightOffers;
+use App\Services\FlightOfferService;
 use App\Services\FlightService;
 use Illuminate\Http\JsonResponse;
 
 class FlightController extends Controller
 {
     public function __construct(
-        protected FlightService $flightService
+        protected FlightService $flightService,
+        protected FlightOfferService $flightOfferService
     ) {
     }
 
@@ -76,5 +78,26 @@ class FlightController extends Controller
         $data = $this->flightService->completeFlightBooking();
 
         return $this->success(message: 'Flight booking processing', data: $data);
+    }
+
+    public function addToWishList(FlightOffers $offer): JsonResponse
+    {
+        $this->flightOfferService->addToWishList($offer);
+
+        return $this->success('Offer added to wishlist');
+    }
+
+    public function deleteFromWishList(FlightOffers $offer): JsonResponse
+    {
+        $this->flightOfferService->deleteFromWishList($offer);
+
+        return $this->success('Offer removed from wishlist');
+    }
+
+    public function getWishLists(): JsonResponse
+    {
+        $data = $this->flightOfferService->getWishLists();
+
+        return $this->success(data: FlightOfferResource::collection($data['data']), meta: $data['meta']);
     }
 }
