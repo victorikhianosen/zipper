@@ -86,8 +86,8 @@ class UserService extends BaseService
     // private function addSearchQuery(BookFlight|Builder $flights, string|array $search): BookFlight|Builder
     // {
     //     return $flights
-    //         // ->orWhereJsonContains('search_meta->trip_type', 'like', "%$search%")
-    //         // ->orWhereJsonContains('search_meta->flight_class', 'like', "%$search%")
+    //         // ->orWhere('search_meta->trip_type', 'like', "%$search%")
+    //         // ->orWhere('search_meta->flight_class', 'like', "%$search%")
     //         ->orWhere('carrier', 'like', "%$search%");
     // }
 }

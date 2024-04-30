@@ -27,6 +27,7 @@ class FlightBookingRequest extends FormRequest
         $rules = [
             'offer_id' => 'bail|required|exists:flight_offers,id',
             'passengers' => 'bail|array|required',
+            'carrier' => 'bail|string|required',
             // 'payment_reference' => 'bail|required|exists:transactions,reference',
             // 'documents' => 'bail|array|required',
             // 'documents' => 'bail|array|required',
