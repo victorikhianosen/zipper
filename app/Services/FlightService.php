@@ -165,7 +165,7 @@ class FlightService extends BaseService
         // $trxn = $this->verifyFlightPayment($data['offer_id'], $data['payment_reference']);
         // $paymentStatus = $trxn->status;
         // record pending booking
-        $pendingBooking = $this->createPendingFlightBooking($rawOffer, $payload);
+        $pendingBooking = $this->createPendingFlightBooking($rawOffer, $payload, $data);
 
         // if ($paymentStatus == TransactionStatus::PENDING->value) {
         //     $pendingBooking->update(['offer_id' => $rawOffer->id]);
@@ -319,8 +319,9 @@ class FlightService extends BaseService
 
     /**
      * @param  array<string,mixed>  $payload
+     * @param  array<string,mixed>  $data
      */
-    private function createPendingFlightBooking(FlightOffers $rawOffer, array $payload): BookFlight
+    private function createPendingFlightBooking(FlightOffers $rawOffer, array $payload, array $data): BookFlight
     {
         $charge = $this->generalSetting->flight_service_charge;
         $flightPrice = $rawOffer['price']['grandTotal'] + $charge;
@@ -334,6 +335,7 @@ class FlightService extends BaseService
             'user_id' => auth()->id(),
             'status' => FlightStatus::PENDING->value,
             'payment_status' => TransactionStatus::PENDING->value,
+            'carrier' => $data['carrier'],
         ]);
     }
 

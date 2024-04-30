@@ -43,6 +43,7 @@ class FlightOfferResource extends JsonResource
             $details['itineraries'][$itTrip] = $segmentLoopArray; // @phpstan-ignore-line
             unset($segmentLoopArray);
         }
+
         $details['aircraft'] = $aircrafts;
         $details['carrier'] = $data['dictionaries']['carriers']; //@phpstan-ignore-line
 

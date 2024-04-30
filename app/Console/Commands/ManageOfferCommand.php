@@ -27,7 +27,7 @@ class ManageOfferCommand extends Command
      */
     public function handle(): void
     {
-        $recordsToDelete = FlightOffers::where('created_at', '<=', Carbon::now()->subHours(1))->get();
+        $recordsToDelete = FlightOffers::whereNull('saved_by')->where('created_at', '<=', Carbon::now()->subHours(1))->get();
 
         foreach ($recordsToDelete as $record) {
             $record->delete();

@@ -121,4 +121,9 @@ class User extends Authenticatable
     {
         return $this->wallet()->first()->point_bonus; //@phpstan-ignore-line
     }
+
+    public function depositPoint(float $amount): void
+    {
+        $this->wallet()->increment('point_bonus', $amount);
+    }
 }

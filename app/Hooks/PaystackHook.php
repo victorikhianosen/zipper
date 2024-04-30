@@ -3,6 +3,7 @@
 namespace App\Hooks;
 
 use App\Enums\TransactionStatus;
+use App\Http\Factories\TransactionFactory;
 use App\Models\BookFlight;
 use App\Models\Transaction;
 use App\Models\User;
@@ -63,5 +64,8 @@ class PaystackHook
         }
         $trxn->update(['status' => $presumedTrxnStatus, 'raw_response' => $event, 'meta' => $meta]);
         $flight->update(['payment_status' => $presumedTrxnStatus]); //@phpstan-ignore-line
+        $user->depositPoint(getPointBonus($trxn->amount));
+        TransactionFactory::createPointBonusTransaction(getPointBonus($trxn->amount));
+
     }
 }
