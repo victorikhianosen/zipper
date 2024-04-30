@@ -34,7 +34,7 @@ class UserService extends BaseService
         }
 
         if (filled($search)) {
-            // $this->addSearchQuery($flights, $search);
+            $this->addSearchQuery($flights, $search); //@phpstan-ignore-line
         }
 
         return $this->paginate(query: $flights);
@@ -83,11 +83,11 @@ class UserService extends BaseService
         return $this->paginate(query: $query);
     }
 
-    // private function addSearchQuery(BookFlight|Builder $flights, string|array $search): BookFlight|Builder
-    // {
-    //     return $flights
-    //         // ->orWhere('search_meta->trip_type', 'like', "%$search%")
-    //         // ->orWhere('search_meta->flight_class', 'like', "%$search%")
-    //         ->orWhere('carrier', 'like', "%$search%");
-    // }
+    private function addSearchQuery(BookFlight|Builder $flights, string $search): mixed
+    {
+        return $flights
+            ->orWhere('search_meta->trip_type', 'like', "%$search%")
+            ->orWhere('search_meta->flight_class', 'like', "%$search%")
+            ->orWhere('carrier', 'like', "%$search%");
+    }
 }
