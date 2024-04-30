@@ -34,6 +34,7 @@ class UserResource extends JsonResource
             'two_factor_enabled' => $this->resource->two_factor_enabled_at !== null,
             'login_biometric_activated' => $this->resource->login_biometric_activated_at !== null,
             'avatar' => $this->resource->avatar,
+            'point_bonus' => $this->resource->wallet?->point_bonus,
         ];
     }
 }
