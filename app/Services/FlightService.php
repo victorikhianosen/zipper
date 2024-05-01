@@ -195,7 +195,7 @@ class FlightService extends BaseService
             'booking_id' => 'bail|required|exists:book_flights,id',
         ]);
 
-        $trxn = Transaction::whereBookingFlightId($data['booking_id'])
+        $trxn = Transaction::whereBookFlightId($data['booking_id'])
             ->latest('updated_at')->first();
         $pendingBooking = BookFlight::whereId($data['booking_id'])->first();
         throw_if(blank($trxn), CustomException::class, 'Payment not found');

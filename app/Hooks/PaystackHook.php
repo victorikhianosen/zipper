@@ -41,7 +41,6 @@ class PaystackHook
      */
     protected function processFlightBookingPayment(array $event): void
     {
-        logger()->warning('method called');
         $meta = $event['data']['metadata'];
         $trxRef = $meta['reference'];
         $payerEmail = $meta['email'];
