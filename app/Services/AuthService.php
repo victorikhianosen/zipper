@@ -12,10 +12,9 @@ use App\Notifications\EmailVerificationSuccess;
 use App\Notifications\PasswordResetRequest;
 use App\Notifications\PasswordResetSuccess;
 use App\Notifications\TwoFactorRequest;
-use Exception;
-use Google\Client;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Socialite\Facades\Socialite;
@@ -56,14 +55,18 @@ class AuthService
      */
     public function processGoogleSignIn(string $userGoogleToken): array
     {
-        $client = new Client(['client_id' => env('GOOGLE_CLIENT_ID')]);
-        try {
-            $userData = $client->verifyIdToken($userGoogleToken);
-        } catch (Exception $e) {
-            throw new BadRequestException('Invalid token.', 400);
+        $response = Http::withToken($userGoogleToken)->get('https://www.googleapis.com/oauth2/v3/userinfo');
+
+        if ($response->failed()) {
+            throw ValidationException::withMessages([
+                'user_token' => ['The user token is invalid.'],
+            ]);
         }
+        $userData = $response->json();
         if (! $userData) {
-            throw new BadRequestException('Invalid google token.', 400);
+            throw ValidationException::withMessages([
+                'user_token' => ['Invalid user token'],
+            ]);
         }
         $user = User::where('email', $userData['email'])->first();
         if (! $user) {
