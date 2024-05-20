@@ -69,6 +69,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::prefix('users')->controller(AdminController::class)->group(function () {
         Route::get('all', 'getUsers');
         Route::get('{user}/flight-bookings', 'getUserFlightBookings');
+        Route::put('make-reseller/{user}', 'makeReseller');
     });
 
     Route::prefix('dashboard')->controller(DashboardController::class)->group(function () {
