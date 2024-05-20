@@ -59,19 +59,21 @@ class FlightController extends Controller
         return $this->success(data: $this->flightService->getAirlines());
     }
 
-    public function retryBookingForFailedPayment(): JsonResponse
-    {
-        $data = $this->flightService->retryBookingForFailedPayment();
+    // public function retryBookingForFailedPayment(): JsonResponse
+    // {
+    //     exit;
+    //     $data = $this->flightService->retryBookingForFailedPayment();
 
-        return $this->success(message: 'Flight booking processing', data: $data);
-    }
+    //     return $this->success(message: 'Flight booking processing', data: $data);
+    // }
 
-    public function retryBookingForPendingPayment(): JsonResponse
-    {
-        $data = $this->flightService->retryBookingForPendingPayment();
+    // public function retryBookingForPendingPayment(): JsonResponse
+    // {
+    //     exit;
+    //     $data = $this->flightService->retryBookingForPendingPayment();
 
-        return $this->success(message: 'Flight booking processing', data: $data);
-    }
+    //     return $this->success(message: 'Flight booking processing', data: $data);
+    // }
 
     public function completeFlightBooking(): JsonResponse
     {

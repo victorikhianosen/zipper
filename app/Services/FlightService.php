@@ -7,6 +7,8 @@ use App\Enums\Status\FlightStatus;
 use App\Enums\TransactionStatus;
 use App\Exceptions\CustomException;
 use App\Http\Requests\FlightBookingRequest;
+use App\Http\Resources\FlightBookingResource;
+use App\Jobs\ResellerCallBackJob;
 use App\Models\BookFlight;
 use App\Models\City;
 use App\Models\FlightOffers;
@@ -146,6 +148,9 @@ class FlightService extends BaseService
      */
     public function bookFlight(FlightBookingRequest $request): array|BookFlight
     {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        $is_reseller = $user->is_reseller;
         $data = $request->validated();
         $rawOffer = FlightOffers::whereId($data['offer_id'])->first();
         throw_if(blank($rawOffer), CustomException::class, 'Offer refreshed, please restart your search');
@@ -183,6 +188,10 @@ class FlightService extends BaseService
         //     rawOffer: $rawOffer, trxn: $trxn
         // );
 
+        if (filled('is_reseller') && $is_reseller == true) {
+            dispatch(new ResellerCallBackJob(new FlightBookingResource($pendingBooking), $user));
+        }
+
         return ['booking_id' => $pendingBooking->id];
     }
 
@@ -191,6 +200,9 @@ class FlightService extends BaseService
      */
     public function completeFlightBooking(): array|BookFlight
     {
+        /** @var \App\Models\User $user */
+        $user = request()->user();
+        $is_reseller = $user->is_reseller;
         $data = request()->validate([
             'booking_id' => 'bail|required|exists:book_flights,id',
         ]);
@@ -207,12 +219,15 @@ class FlightService extends BaseService
         $rawOffer = FlightOffers::whereId($pendingBooking?->offer_id)->first();
         throw_if(blank($rawOffer), CustomException::class, 'Offer refreshed, please start again');
         $this->requestForAmadeusBooking(
-            payload : $pendingBooking->request_body, //@phpstan-ignore-line
+            payload: $pendingBooking->request_body, //@phpstan-ignore-line
             data: ['offer_id' => $pendingBooking?->offer_id],
             rawOffer: $rawOffer,
             pendingBooking: $pendingBooking, //@phpstan-ignore-line
             trxn: $trxn
         );
+        if (filled('is_reseller') && $is_reseller == true) {
+            dispatch(new ResellerCallBackJob(new FlightBookingResource($pendingBooking), $user));
+        }
 
         return ['booking_id' => $pendingBooking?->id];
     }
@@ -235,9 +250,11 @@ class FlightService extends BaseService
                 'gender' => $item['gender'],
                 'contact' => [
                     'emailAddress' => $item['contact']['email_address'],
-                    'phones' => [['deviceType' => $item['contact']['phones'][0]['device_type'],
+                    'phones' => [[
+                        'deviceType' => $item['contact']['phones'][0]['device_type'],
                         'countryCallingCode' => $item['contact']['phones'][0]['country_calling_code'],
-                        'number' => $item['contact']['phones'][0]['number']]],
+                        'number' => $item['contact']['phones'][0]['number'],
+                    ]],
                 ],
 
                 'documents' => [
@@ -372,8 +389,10 @@ class FlightService extends BaseService
 
         $this->requestForAmadeusBooking(
             payload: $flight->request_body, //@phpstan-ignore-line
-            pendingBooking: $flight, rawOffer: null,
-            trxn: $trxn, data: ['offer_id' => $flight->offer_id]
+            pendingBooking: $flight,
+            rawOffer: null,
+            trxn: $trxn,
+            data: ['offer_id' => $flight->offer_id]
         );
 
         return ['booking_id' => $flight->id];
@@ -408,8 +427,10 @@ class FlightService extends BaseService
 
         $this->requestForAmadeusBooking(
             payload: $flight->request_body, //@phpstan-ignore-line
-            pendingBooking: $flight, rawOffer: null,
-            trxn: $trxn, data: ['offer_id' => $flight->offer_id]
+            pendingBooking: $flight,
+            rawOffer: null,
+            trxn: $trxn,
+            data: ['offer_id' => $flight->offer_id]
         );
 
         return ['booking_id' => $flight->id];

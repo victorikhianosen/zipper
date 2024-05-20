@@ -14,7 +14,6 @@ class AdminController extends Controller
         protected UserService $userService,
         protected AdminService $adminService
     ) {
-
     }
 
     public function getUsers(): JsonResponse
@@ -29,5 +28,12 @@ class AdminController extends Controller
         $flights = $this->adminService->getUserFlightBookings($user);
 
         return $this->success(data: FlightBookingResource::collection($flights['data']), meta: $flights['meta']);
+    }
+
+    public function makeReseller(User $user): JsonResponse
+    {
+        $this->adminService->makeReseller($user);
+
+        return $this->success('Account updated successfully');
     }
 }
