@@ -20,17 +20,25 @@ class ManageOfferCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Delete expired offers';
+    protected $description = 'Delete expired offers or deals';
 
     /**
      * Execute the console command.
      */
     public function handle(): void
     {
-        $recordsToDelete = FlightOffers::whereNull('saved_by')->where('created_at', '<=', Carbon::now()->subHours(1))->get();
+        // offers
+        $recordsToDelete = FlightOffers::whereNull('saved_by')->whereNull('expires_at')->where('created_at', '<=', Carbon::now()->subHours(1))->get();
 
         foreach ($recordsToDelete as $record) {
             $record->delete();
         }
+
+        // deals, delete deals that have expired
+
+        // Get the current date
+        $today = now()->toDateString();
+        // Delete records that have expired
+        FlightOffers::whereDate('expires_at', $today)->delete();
     }
 }

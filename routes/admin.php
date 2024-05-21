@@ -46,6 +46,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
             Route::post('create', 'create');
             Route::put('edit', 'edit');
             Route::get('all', 'all');
+            Route::post('create-deals', 'createFlightDeals');
+            Route::post('delete-deals/{offer}', 'deleteFlightDeal');
         });
     });
 

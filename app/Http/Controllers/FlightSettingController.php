@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FlightDealRequest;
 use App\Http\Requests\FlightSettingRequest;
+use App\Http\Resources\FlightOfferResource;
+use App\Models\FlightOffers;
+use App\Services\FlightService;
 use App\Services\FlightSettingService;
 use Illuminate\Http\JsonResponse;
 
 class FlightSettingController extends Controller
 {
-    public function __construct(protected FlightSettingService $settingService)
-    {
-
+    public function __construct(
+        protected FlightSettingService $settingService,
+        protected FlightService $flightService
+    ) {
     }
 
     public function create(FlightSettingRequest $settingRequest): JsonResponse
@@ -35,5 +40,19 @@ class FlightSettingController extends Controller
         }
 
         return $this->success(data: $data);
+    }
+
+    public function createFlightDeals(FlightDealRequest $request): JsonResponse
+    {
+        $data = $this->settingService->getOffers($request->validated());
+
+        return $this->success(data: new FlightOfferResource($data));
+    }
+
+    public function deleteFlightDeal(FlightOffers $offer): JsonResponse
+    {
+        $offer->delete();
+
+        return $this->success(message: 'Deals deleted successfully');
     }
 }
