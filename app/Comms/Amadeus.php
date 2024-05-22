@@ -166,4 +166,34 @@ class Amadeus
 
         return $response;
     }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array <string,mixed>
+     */
+    public function flightDeals(array $data): array
+    {
+        $this->setToken();
+        $endPoint = config('vars.amadeus.flight_deals');
+        $headers = ['content-type' => 'application/json', 'Authorization' => 'Bearer '.$this->token];
+        try {
+            $response = $this->server->sendGet(
+                url: $endPoint,
+                headers: $headers,
+                query: $data
+            );
+            Log::info($response);
+            if (array_key_exists('errors', $response) || ! array_key_exists('data', $response)) {
+                throw new AmadeusException(
+                    $response['errors'][0]['detail'],
+                    $response['errors'][0]['code']
+                );
+            }
+        } catch (\Throwable $th) {
+            Log::error($th);
+            throw $th;
+        }
+
+        return $response;
+    }
 }

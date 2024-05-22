@@ -453,7 +453,10 @@ class FlightService extends BaseService
                     'ticketing_agreement' => $resp['data']['ticketingAgreement'], 'dictionaries' => $resp['dictionaries'],
                     'raw_response' => $resp['data'], 'status' => FlightStatus::COMPLETED->value, 'payment_status' => $trxn->status,
                 ]);
-                @$rawOffer?->delete();
+                //delete offers that's not a deal
+                if (blank($rawOffer?->expires_at)) {
+                    @$rawOffer?->delete();
+                }
                 $trxn->update(['book_flight_id' => $pendingBooking->id, 'temp_booking_ref' => null]);
             } else {
                 // $pendingBooking->update(['status' => FlightStatus::FAILED->value]);

@@ -8,6 +8,7 @@ return [
         'flight_offers' => env('AMADEUS_API_URL').'/v2/shopping/flight-offers',
         'flight_offers_price' => env('AMADEUS_API_URL').'/v1/shopping/flight-offers/pricing',
         'flight_book' => env('AMADEUS_API_URL').'/v1/booking/flight-orders',
+        'flight_deals' => env('AMADEUS_API_URL').'/v1/shopping/flight-dates',
     ],
 
     'paystack' => [

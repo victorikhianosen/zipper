@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\FlightController;
+use App\Http\Controllers\FlightSettingController;
 use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,7 +28,11 @@ Route::prefix('flight')->group(function () {
             Route::post('retry-for-failed', 'retryBookingForFailedPayment');
             Route::post('retry-for-pending', 'retryBookingForPendingPayment');
         });
+    });
 
+    Route::prefix('deals')->middleware('auth:sanctum')->controller(FlightSettingController::class)->group(function () {
+        Route::get('all-deals', 'getFlightDeals');
+        Route::get('single-deal/{offer}', 'singleFlightDeal');
     });
 
     Route::prefix('pay')->middleware('auth:sanctum')->controller(PaymentController::class)->group(function () {
