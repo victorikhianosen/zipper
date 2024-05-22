@@ -46,7 +46,14 @@ class FlightSettingController extends Controller
     {
         $data = $this->settingService->getOffers($request->validated());
 
-        return $this->success(data: new FlightOfferResource($data));
+        return $this->success(data: FlightOfferResource::collection($data));
+    }
+
+    public function getFlightDeals(): JsonResponse
+    {
+        $deals = $this->settingService->getFlightDeals();
+
+        return $this->success(data: FlightOfferResource::collection($deals['data']), meta: $deals['meta']);
     }
 
     public function deleteFlightDeal(FlightOffers $offer): JsonResponse
@@ -54,5 +61,10 @@ class FlightSettingController extends Controller
         $offer->delete();
 
         return $this->success(message: 'Deals deleted successfully');
+    }
+
+    public function singleFlightDeal(FlightOffers $offer): JsonResponse
+    {
+        return $this->success(data: new FlightOfferResource($offer));
     }
 }

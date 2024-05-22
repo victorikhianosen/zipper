@@ -81,14 +81,8 @@ class FlightSettingService extends BaseService
         if ($data['trip_type'] == 'round') {
             $payload['returnDate'] = $data['arrival_date'];
         }
-        if (filled($data['airlines'])) {
-            $payload['includedAirlineCodes'] = $data['airlines'];
-        }
-        if (filled($data['max_price'])) {
-            $payload['maxPrice'] = intval($data['max_price']);
-        }
         $offers = $this->amadeus->searchOffers($payload);
-        if (blank($offers)) {
+        if (blank($offers) || blank($offers['data'])) {
             throw new CustomException('Search doesn\'t bring results');
         }
 
@@ -120,5 +114,15 @@ class FlightSettingService extends BaseService
         $fromDb = $this->flightOffers->where('search_id', $search_id)->get();
 
         return $fromDb;
+    }
+
+    /**
+     * @return array<mixed,mixed> | \Illuminate\Support\Collection
+     */
+    public function getFlightDeals(): array|Collection
+    {
+        $activeFlightDeals = FlightOffers::whereNotNull('expires_at')->where('expires_at', '>', now());
+
+        return $this->paginate($activeFlightDeals);
     }
 }
