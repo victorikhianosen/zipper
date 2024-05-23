@@ -30,7 +30,7 @@ Route::prefix('flight')->group(function () {
         });
     });
 
-    Route::prefix('deals')->middleware('auth:sanctum')->controller(FlightSettingController::class)->group(function () {
+    Route::prefix('deals')->controller(FlightSettingController::class)->group(function () {
         Route::get('all-deals', 'getFlightDeals');
         Route::get('single-deal/{offer}', 'singleFlightDeal');
     });
