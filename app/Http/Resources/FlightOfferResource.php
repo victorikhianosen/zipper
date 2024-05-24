@@ -60,6 +60,10 @@ class FlightOfferResource extends JsonResource
         $is_deal = filled($data['expires_at']) ? true : false; //@phpstan-ignore-line
 
         $details['is_deal'] = $is_deal;
+        if ($is_deal == true) {
+            $details['search_meta'] = $data['search_meta']; // @phpstan-ignore-line
+            $details['image_link'] = $data['image_link']; // @phpstan-ignore-line
+        }
 
         return $details;
     }

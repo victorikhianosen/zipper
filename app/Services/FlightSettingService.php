@@ -104,6 +104,7 @@ class FlightSettingService extends BaseService
                 'search_meta' => $data,
                 'dictionaries' => $offers['dictionaries'],
                 'expires_at' => Carbon::parse($data['expires_at']),
+                'image_link' => $data['image_url'],
             ]);
             $price_array = $offer['price'];
             $price_array['total'] = $data['price'];
