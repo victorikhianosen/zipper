@@ -38,6 +38,7 @@ class FlightDealRequest extends FormRequest
             'search_id' => 'bail|required|unique:flight_offers,search_id',
             'price' => 'bail|required|numeric',
             'expires_at' => 'bail|required|date',
+            'image_url' => 'bail|sometimes',
         ];
     }
 
