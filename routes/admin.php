@@ -7,9 +7,11 @@ use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FlightSettingController;
+use App\Http\Controllers\ImageKitSignatureController;
 use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
 
+// Route::get('img-sig', [ImageKitSignatureController::class, 'system']);
 Route::controller(AuthController::class)->group(function () {
     Route::post('login', 'login')->whereIn('provider', ['password', 'google', 'apple']);
     Route::post('send-password-reset-email', 'sendPasswordResetEmail')->middleware('throttle:3,1');
@@ -22,6 +24,7 @@ Route::controller(AuthController::class)->group(function () {
         Route::get('user', 'getAuthUser');
         Route::post('logout', 'logout');
         Route::post('toggle-2fa', 'toggle2fa');
+        Route::get('img-sig', [ImageKitSignatureController::class, 'system']);
     });
 });
 
