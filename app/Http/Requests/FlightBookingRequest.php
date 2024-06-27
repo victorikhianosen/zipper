@@ -95,6 +95,8 @@ class FlightBookingRequest extends FormRequest
             'passengers.*.contact.required' => 'The passenger country code is required.',
             'passengers.*.contact.phones.*.number.required' => 'Passenger phone number is required',
             'passengers.*.documents.*.document_type.in' => 'Document type not supported',
+            'passengers.*.documents.*.issuance_date.date' => 'Document issuance date is not valid',
+            'passengers.*.documents.*.expirty_date.date' => 'Document expiry date is not valid',
 
         ];
     }
