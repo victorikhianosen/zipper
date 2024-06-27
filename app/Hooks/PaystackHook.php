@@ -8,6 +8,8 @@ use App\Models\BookFlight;
 use App\Models\Transaction;
 use App\Models\User;
 
+use function Laravel\Prompts\warning;
+
 class PaystackHook
 {
     public function processHook(): void
@@ -33,7 +35,6 @@ class PaystackHook
 
             $this->processFlightBookingPayment($event);
         }
-
     }
 
     /**
@@ -61,11 +62,12 @@ class PaystackHook
         if (blank($user) || blank($trxn) || $trxn->status != 'pending') {
             exit;
         }
+        warning($presumedTrxnStatus);
+        logger($flight);
         $trxn->update(['status' => $presumedTrxnStatus, 'raw_response' => $event, 'meta' => $meta]);
         $flight->update(['payment_status' => $presumedTrxnStatus]); //@phpstan-ignore-line
         $user->depositPoint(getPointBonus($trxn->amount));
         logger('gothere');
         TransactionFactory::createPointBonusTransaction(getPointBonus($trxn->amount));
-
     }
 }
