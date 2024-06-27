@@ -21,7 +21,6 @@ class PaymentService extends BaseService
         protected FlightOffers $flightOffers,
         protected Setting $setting
     ) {
-
     }
 
     /**
@@ -38,10 +37,9 @@ class PaymentService extends BaseService
         $channel = $data['channel'];
 
         return match ($channel) {
-            'paystack' => $this->initiateFlightPaymentWithPaystack($data) ,
+            'paystack' => $this->initiateFlightPaymentWithPaystack($data),
             default => throw new CustomException('Payment method not valid')
         };
-
     }
 
     /**
@@ -56,7 +54,7 @@ class PaymentService extends BaseService
         $flightPrice = $offer['price']['grandTotal'];
         $departureDate = Carbon::parse($offer['departure_date']);
         throw_if(today()->greaterThan($departureDate), CustomException::class, 'Flight date should a future date');
-        throw_if(now()->diffInMinutes(Carbon::parse($offer->updated_at)) > 60, CustomException::class, 'Offer refreshed, please start again');
+        throw_if(now()->diffInMinutes(Carbon::parse($offer->updated_at)) > 60, CustomException::class, 'Offer refreshed, start again');
         $setting = $this->setting->first();
         $charge = $setting?->flight_service_charge;
 
@@ -93,6 +91,5 @@ class PaymentService extends BaseService
                 'offer_id' => $offer->id,
             ],
         ];
-
     }
 }
