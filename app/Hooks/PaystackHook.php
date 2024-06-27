@@ -56,12 +56,11 @@ class PaystackHook
         $user = User::whereEmail($payerEmail)->first();
         /** @var \App\Models\Transaction $trxn */
         $trxn = Transaction::whereUserId($user?->id)->whereReference($trxRef)->whereOfferId($assocOfferId)->first();
-        $flight = BookFlight::whereId($trxn->booking_flight_id)->first(); //@phpstan-ignore-line
+        $flight = BookFlight::whereId($trxn->book_flight_id)->first();
         if (blank($user) || blank($trxn) || $trxn->status != 'pending') {
             exit;
         }
         logger($trxn);
-
         logger($flight);
         $trxn->update(['status' => strval($presumedTrxnStatus), 'raw_response' => $event, 'meta' => $meta]);
         $flight->update(['payment_status' => strval($presumedTrxnStatus)]); //@phpstan-ignore-line
