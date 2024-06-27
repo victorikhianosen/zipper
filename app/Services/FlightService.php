@@ -211,7 +211,7 @@ class FlightService extends BaseService
             ->latest('updated_at')->first();
         $pendingBooking = BookFlight::whereId($data['booking_id'])->first();
         throw_if(blank($trxn), CustomException::class, 'Payment not found');
-        throw_if($trxn->status == TransactionStatus::PENDING->value, CustomException::class, 'Payment is processing, try again');
+        throw_if($trxn->status == TransactionStatus::PENDING->value, CustomException::class, 'Payment is processing');
         if ($trxn->status == TransactionStatus::FAILED->value) {
             $pendingBooking?->update(['payment_status' => TransactionStatus::FAILED->value]);
             throw new CustomException('Payment was not successful');
@@ -345,6 +345,7 @@ class FlightService extends BaseService
 
         return $this->bookFlight->create([
             'flight_cost' => $flightPrice,
+            'offer_id' => $rawOffer->id,
             'locations' => $rawOffer->locations,
             'search_meta' => $rawOffer->search_meta,
             'request_body' => $payload,

@@ -60,8 +60,8 @@ class PaystackHook
         if (blank($user) || blank($trxn) || $trxn->status != 'pending') {
             exit;
         }
-        logger($presumedTrxnStatus);
-        info($gatewayStatus);
+        logger($trxn);
+
         logger($flight);
         $trxn->update(['status' => strval($presumedTrxnStatus), 'raw_response' => $event, 'meta' => $meta]);
         $flight->update(['payment_status' => strval($presumedTrxnStatus)]); //@phpstan-ignore-line
