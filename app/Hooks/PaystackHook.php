@@ -65,7 +65,7 @@ class PaystackHook
         $trxn->update(['status' => strval($presumedTrxnStatus), 'raw_response' => $event, 'meta' => $meta]);
         $flight->update(['payment_status' => strval($presumedTrxnStatus)]); //@phpstan-ignore-line
         $user->depositPoint(getPointBonus($trxn->amount));
-        logger('gothere');
+
         TransactionFactory::createPointBonusTransaction(getPointBonus($trxn->amount));
     }
 }
