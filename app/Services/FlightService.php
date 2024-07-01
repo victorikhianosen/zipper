@@ -18,6 +18,7 @@ use App\Models\Transaction;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Sleep;
 use Throwable;
 
 class FlightService extends BaseService
@@ -211,6 +212,7 @@ class FlightService extends BaseService
             ->latest('updated_at')->first();
         $pendingBooking = BookFlight::whereId($data['booking_id'])->first();
         throw_if(blank($trxn), CustomException::class, 'Payment not found');
+        Sleep::for(15)->seconds();
         throw_if($trxn->status == TransactionStatus::PENDING->value, CustomException::class, 'Payment is processing');
         if ($trxn->status == TransactionStatus::FAILED->value) {
             $pendingBooking?->update(['payment_status' => TransactionStatus::FAILED->value]);
