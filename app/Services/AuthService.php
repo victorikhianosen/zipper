@@ -131,10 +131,6 @@ class AuthService
     public function processLogin(array $data): array
     {
         $user = User::where('email', $data['email'])->first();
-        //@phpstan-ignore-next-line
-        if (! $user->wallet) {
-            $user->wallet()->create(); //@phpstan-ignore-line
-        }
         if (! $user || ! Hash::check($data['password'], $user['password'])) {
             throw ValidationException::withMessages([
                 'email' => ['The credentials supplied is invalid.'],
@@ -142,6 +138,9 @@ class AuthService
         }
         if ($user['auth_type'] != AuthType::PASSWORD) {
             throw new BadRequestException('Auth type not valid.', 400);
+        }
+        if (! $user->wallet) {
+            $user->wallet()->create();
         }
 
         return $this->returnUserAndToken($user);
