@@ -59,7 +59,8 @@
             "@php artisan key:generate --ansi"
         ],
         "post-install-cmd": [
-            "bash scripts/setup.sh"
+            "bash scripts/setup.sh",
+            "@php artisan app:seed-permissions"
         ],
         "pint": [
             "./vendor/bin/pint"

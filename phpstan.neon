@@ -13,6 +13,9 @@ parameters:
     treatPhpDocTypesAsCertain: false
 
     ignoreErrors:
+        -
+            message: '#Access to an undefined property [a-zA-Z0-9\\_]+::\$#'
+            path: app/Http/Resources/
     excludePaths:
 
 includes:

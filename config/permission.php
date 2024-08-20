@@ -191,6 +191,14 @@ return [
             'Toggle Admin Status',
             'Change Admin Role',
         ],
+        'alerts' => [
+            'View Alerts',
+            'Add Alert',
+            'Edit Alert',
+            'Delete Alert',
+            'Restore Alert',
+            'Dispatch Alert',
+        ],
         'app-configs' => [
             'View App Configs',
             'Edit App Config',
