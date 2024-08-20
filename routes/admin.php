@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AppUpdateController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\FaqCategoryController;
 use App\Http\Controllers\Admin\FaqController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FlightSettingController;
@@ -84,5 +85,13 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::get('flight-bookings', 'getFlightBookings');
         Route::get('single-flight-booking/{flight}', 'getSingleFlightBooking');
         Route::get('transactions', 'getTransactions');
+    });
+
+    Route::prefix('roles')->controller(RoleController::class)->group(function () {
+        Route::get('/', 'index')->middleware('permission:View Roles');
+        Route::post('/', 'store')->middleware('permission:Add Role');
+        Route::get('{role}', 'show')->middleware('permission:View Roles');
+        Route::post('{role}', 'update')->middleware('permission:Edit Role');
+        Route::delete('{role}', 'delete')->middleware('permission:Delete Role');
     });
 });

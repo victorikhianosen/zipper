@@ -16,6 +16,7 @@
         "laravel/tinker": "^2.8",
         "mailgun/mailgun-php": "^4.1",
         "opcodesio/log-viewer": "^3.7",
+        "spatie/laravel-permission": "^6.9",
         "symfony/http-client": "^6.4",
         "symfony/mailer": "^6.4",
         "symfony/mailgun-mailer": "^6.4"

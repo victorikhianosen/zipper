@@ -28,6 +28,7 @@ class AdminResource extends JsonResource
             'status' => $this->resource->status->value,
             'two_factor_enabled' => $this->resource->two_factor_enabled_at !== null,
             'avatar' => $this->resource->avatar,
+            'role' => $this->resource->email == 'admin@zippatravels.com' ? ['*'] : new RoleResource($this->resource->roles()->latest()->first()),
         ];
     }
 }
