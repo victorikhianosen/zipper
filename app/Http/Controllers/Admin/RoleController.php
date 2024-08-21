@@ -7,6 +7,7 @@ use App\Http\Requests\RoleRequest;
 use App\Http\Resources\PermissionResource;
 use App\Http\Resources\RoleResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -38,8 +39,10 @@ class RoleController extends Controller
 
     public function store(RoleRequest $request): JsonResponse
     {
+        DB::beginTransaction();
         $role = Role::create(['name' => $request->name, 'guard_name' => config('permission.guard')]);
-        $role->syncPermissions($request->permissions);
+        $role->permissions()->sync($request->permissions);
+        DB::commit();
 
         return $this->success(data: new RoleResource($role));
     }
