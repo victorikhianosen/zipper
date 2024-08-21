@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AlertController;
 use App\Http\Controllers\Admin\AppUpdateController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\FaqCategoryController;
@@ -34,6 +35,16 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('create', 'create');
         Route::put('edit', 'edit');
         Route::get('all', 'all');
+    });
+
+    Route::prefix('alerts')->controller(AlertController::class)->group(function () {
+        Route::get('', 'index')->middleware('permission:View Alerts');
+        Route::post('', 'store')->middleware('permission:Add Alert');
+        Route::get('{alert}', 'show')->middleware('permission:View Alerts');
+        Route::post('{alert}', 'update')->middleware('permission:Edit Alert');
+        Route::delete('{alert}', 'destroy')->middleware('permission:Delete Alert');
+        Route::patch('{alert}/restore', 'restore')->middleware('permission:Restore Alert');
+        Route::post('{alert}/dispatch', 'dispatch')->middleware('permission:Dispatch Alert');
     });
 
     Route::prefix('settings')->group(function () {

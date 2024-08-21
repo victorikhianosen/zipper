@@ -34,8 +34,8 @@ class AlertResource extends JsonResource
             'user_count' => $this->resource->user_count,
             'channels' => $this->resource->channels,
             'failed_note' => $this->resource->failed_note,
-            'created_at' => date('Y-m-d H:i:s', strtotime($this->resource->created_at)),
-            'dispatch_datetime' => date('Y-m-d H:i:s', strtotime($this->resource->dispatched_at)),
+            'created_at' => $this->resource->created_at,
+            'dispatch_datetime' => $this->resource->dispatched_at,
         ] + $creator + $users;
     }
 }
