@@ -55,7 +55,7 @@ class RoleController extends Controller
     public function update(RoleRequest $request, Role $role): JsonResponse
     {
         $role->update(['name' => $request->name]);
-        $role->syncPermissions($request->permissions);
+        $role->permissions()->sync($request->permissions);
 
         return $this->success(data: new RoleResource($role));
     }
