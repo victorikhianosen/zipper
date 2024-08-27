@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminController as AdminsController;
 use App\Http\Controllers\Admin\AlertController;
 use App\Http\Controllers\Admin\AppUpdateController;
 use App\Http\Controllers\Admin\AuthController;
@@ -35,6 +36,14 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('create', 'create');
         Route::put('edit', 'edit');
         Route::get('all', 'all');
+    });
+
+    Route::prefix('admins')->group(function () {
+        Route::get('/', [AdminsController::class, 'index'])->middleware('permission:View Admins');
+        Route::post('/', [AdminsController::class, 'store'])->middleware('permission:Add Admin');
+        Route::get('{admin}', [AdminsController::class, 'show'])->middleware('permission:View Admins');
+        Route::put('{admin}', [AdminsController::class, 'update'])->middleware('permission:Toggle Admin Status');
+        Route::put('{admin}/assign-role/{role}', [AdminsController::class, 'changeRole'])->middleware('permission:Change Admin Role');
     });
 
     Route::prefix('alerts')->controller(AlertController::class)->group(function () {

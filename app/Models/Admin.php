@@ -52,4 +52,12 @@ class Admin extends Authenticatable
         'otp' => 'hashed',
         'status' => AdminStatus::class,
     ];
+
+    public static function scopeSearch(mixed $query, string $search): mixed
+    {
+        return $query->where('first_name', 'LIKE', "%$search")
+            ->orWhere('last_name', 'LIKE', "%$search")
+            ->orWhere('email', 'LIKE', "%$search")
+            ->orWhere('phone', 'LIKE', "%$search");
+    }
 }
