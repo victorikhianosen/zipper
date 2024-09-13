@@ -30,6 +30,11 @@ class Transaction extends BaseModel
 
     protected $guarded = [];
 
+    public function offer(): BelongsTo
+    {
+        return $this->belongsTo(FlightOffers::class);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

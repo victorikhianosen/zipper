@@ -1,5 +1,6 @@
 <?php
 
+use App\Hooks\FlutterwaveHook;
 use App\Hooks\PaystackHook;
 use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\AuthController;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::post('flutterwave/hook', [FlutterwaveHook::class, 'processHook']);
 Route::post('paystack/hook', [PaystackHook::class, 'processHook']);
 Route::get('all-faqs', [FaqController::class, 'getAllFaqs']);
 

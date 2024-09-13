@@ -15,15 +15,18 @@ class BaseService
     protected function calculatePaystackCharge(float $amount): float
     {
         if ($amount <= 2499) {
-            $finalAmount = floatval(($amount / 0.985) + 0.01);
-
-            return ceil(floatval($finalAmount));
+            $finalAmount = ($amount / 0.985) + 0.01;
         } else {
             $amountFlatFee = $amount + 100;
-            $finalAmount = floatval(($amountFlatFee / 0.985) + 0.01);
-
-            return ceil(floatval($finalAmount));
+            $finalAmount = ($amountFlatFee / 0.985) + 0.01;
         }
+
+        return ceil($finalAmount);
+    }
+
+    protected function calculateFlutterwaveCharge(float $amount): float
+    {
+        return ceil($amount * 1.4 / 100);
     }
 
     protected function verifyFlightPayment(string $offerId, string $reference): Transaction

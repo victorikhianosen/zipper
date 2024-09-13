@@ -19,5 +19,6 @@ return [
     'flutterwave' => [
         'pub_key' => env('FLUTTERWAVE_PUBLIC_KEY'),
         'sec_key' => env('FLUTTERWAVE_SECRET_KEY'),
+        'sec_hash' => env('FLUTTERWAVE_SECRET_HASH'),
     ],
 ];

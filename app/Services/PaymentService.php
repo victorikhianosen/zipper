@@ -38,6 +38,7 @@ class PaymentService extends BaseService
 
         return match ($channel) {
             'paystack' => $this->initiateFlightPaymentWithPaystack($data),
+            'flutterwave' => $this->initiateFlightPaymentWithFlutterwave($data),
             default => throw new CustomException('Payment method not valid')
         };
     }
@@ -48,36 +49,16 @@ class PaymentService extends BaseService
      */
     protected function initiateFlightPaymentWithPaystack(array $data): array
     {
-        $user = request()->user();
-        $offer = $this->flightOffers->whereId($data['offer_id'])->first();
-        throw_if(blank($offer), CustomException::class, 'Offer unavailable');
-        $flightPrice = $offer['price']['grandTotal'];
-        $departureDate = Carbon::parse($offer['departure_date']);
-        throw_if(today()->greaterThan($departureDate), CustomException::class, 'Flight date should a future date');
-        throw_if(now()->diffInMinutes(Carbon::parse($offer->updated_at)) > 60, CustomException::class, 'Offer refreshed, start again');
-        $setting = $this->setting->first();
-        $charge = $setting?->flight_service_charge;
-
-        $trxn = $this->transaction->create([
-            'user_id' => $user->id, //@phpstan-ignore-line
-            'offer_id' => $offer->id,
-            'reference' => getRandomReference('FLP'),
-            'amount' => $flightPrice + $charge,
-            'description' => 'Payment for flight booking',
-            'service_type' => ServiceType::FLIGHT->value,
-            'transaction_type' => TransactionType::OUTFLOW->value,
-            'category' => TransactionCat::FLIGHTBOOKING->value,
-            'gateway' => Gateway::PAYSTACK->value,
-            'status' => TransactionStatus::PENDING->value,
-            'book_flight_id' => $data['booking_id'],
-        ]);
+        $trxn = $this->validateDataAndReturnTransaction($data, Gateway::PAYSTACK->value);
+        $user = $trxn->user;
+        $offer = $trxn->offer;
 
         return [
             'reference' => $trxn->reference,
             'amount' => $this->calculatePaystackCharge($trxn->amount) * 100,
             'break_down' => [
-                'flight_amount' => $flightPrice,
-                'service_charge' => $charge,
+                'flight_amount' => $trxn->amount - $this->getFlightServiceCharge(),
+                'service_charge' => $this->getFlightServiceCharge(),
                 'gateway_charge' => $this->calculatePaystackCharge($trxn->amount) - $trxn->amount,
                 'total_in_kobo' => $this->calculatePaystackCharge($trxn->amount) * 100,
                 'total_in_naira' => $this->calculatePaystackCharge($trxn->amount),
@@ -88,8 +69,82 @@ class PaymentService extends BaseService
                 'email' => $user->email, //@phpstan-ignore-line
                 'type' => ServiceType::FLIGHT->value,
                 'amount' => $trxn->amount,
-                'offer_id' => $offer->id,
+                'offer_id' => $offer?->id,
             ],
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function initiateFlightPaymentWithFlutterwave(array $data): array
+    {
+        $trxn = $this->validateDataAndReturnTransaction($data, Gateway::FLUTTERWAVE->value);
+        $gatewayCharge = $this->calculateFlutterwaveCharge($trxn->amount);
+        $user = $trxn->user;
+        $offer = $trxn->offer;
+
+        return [
+            'reference' => $trxn->reference,
+            'amount' => $trxn->amount + $gatewayCharge,
+            'break_down' => [
+                'flight_amount' => $trxn->amount - $this->getFlightServiceCharge(),
+                'service_charge' => $this->getFlightServiceCharge(),
+                'gateway_charge' => $gatewayCharge,
+                'total_in_kobo' => ($trxn->amount + $gatewayCharge) * 100,
+                'total_in_naira' => $trxn->amount + $gatewayCharge,
+            ],
+            'pkey' => config('vars.flutterwave.pub_key'),
+            'meta' => [
+                'reference' => $trxn->reference,
+                'email' => $user->email, //@phpstan-ignore-line
+                'type' => ServiceType::FLIGHT->value,
+                'amount' => $trxn->amount,
+                'offer_id' => $offer?->id,
+            ],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    private function validateDataAndReturnTransaction(array $data, string $gateway): Transaction
+    {
+        $user = request()->user();
+        $offer = $this->flightOffers->whereId($data['offer_id'])->first();
+        throw_if(blank($user) || blank($offer), CustomException::class, 'Offer unavailable');
+        $flightPrice = $offer['price']['grandTotal'];
+        $departureDate = Carbon::parse($offer['departure_date']);
+        throw_if(today()->greaterThan($departureDate), CustomException::class, 'Flight date should a future date');
+        throw_if(now()->diffInMinutes(Carbon::parse($offer->updated_at)) > 60, CustomException::class, 'Offer refreshed, start again');
+        $reference = getRandomReference('FLP');
+        $amount = $flightPrice + $this->getFlightServiceCharge();
+
+        return $this->transaction->create([
+            'user_id' => $user->id,
+            'offer_id' => $offer->id,
+            'reference' => $reference,
+            'amount' => $amount,
+            'description' => 'Payment for flight booking',
+            'service_type' => ServiceType::FLIGHT->value,
+            'transaction_type' => TransactionType::OUTFLOW->value,
+            'category' => TransactionCat::FLIGHTBOOKING->value,
+            'gateway' => $gateway,
+            'status' => TransactionStatus::PENDING->value,
+            'book_flight_id' => $data['booking_id'],
+            'meta' => [
+                'reference' => $reference,
+                'email' => $user->email,
+                'type' => ServiceType::FLIGHT->value,
+                'amount' => $amount,
+                'offer_id' => $offer->id,
+            ],
+        ]);
+    }
+
+    private function getFlightServiceCharge(): float
+    {
+        return $this->setting->first()?->flight_service_charge ?? 0;
     }
 }
