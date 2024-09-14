@@ -2,7 +2,10 @@
 
 namespace App\Hooks;
 
+use App\Enums\TransactionStatus;
+use App\Models\Transaction;
 use App\Traits\ProcessFlightBookingPayment;
+use Illuminate\Support\Arr;
 
 class FlutterwaveHook
 {
@@ -22,10 +25,17 @@ class FlutterwaveHook
             logger('signature mismatch');
             exit;
         }
-        if ($event['event'] != 'charge.completed' || ! $event['data']['metadata']) {
+        if (Arr::get($event, 'event') != 'charge.completed') {
             exit;
         }
-        $event['data']['metadata'] = $event['meta']['data'];
+        $transaction = Transaction::query()
+            ->where('reference', Arr::get($event['data'], 'tx_ref'))
+            ->where('status', TransactionStatus::PENDING->value)
+            ->first();
+        if (! $transaction || ! Arr::get($transaction, 'meta')) {
+            exit;
+        }
+        $event['data']['metadata'] = $transaction['meta'];
         if ($event['data']['metadata']['type'] == 'flight') {
             $this->processFlightBookingPayment($event);
         }
