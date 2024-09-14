@@ -10,10 +10,11 @@ use App\Models\Transaction;
 
 class TransactionFactory
 {
-    public static function createPointBonusTransaction(float $amount): Transaction
+    public static function createPointBonusTransaction(float $amount, string $offerId): Transaction
     {
         return Transaction::create([
             'user_id' => auth()->id(),
+            'offer_id' => $offerId,
             'reference' => getRandomReference('PB'),
             'amount' => $amount,
             'description' => 'Point-credit',

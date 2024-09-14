@@ -40,6 +40,6 @@ trait ProcessFlightBookingPayment
         $flight->update(['payment_status' => strval($presumedTrxnStatus)]); //@phpstan-ignore-line
         $user->depositPoint(getPointBonus($trxn->amount));
 
-        TransactionFactory::createPointBonusTransaction(getPointBonus($trxn->amount));
+        TransactionFactory::createPointBonusTransaction(getPointBonus($trxn->amount), $assocOfferId);
     }
 }
