@@ -3,6 +3,7 @@
 namespace App\Http\Factories;
 
 use App\Enums\Gateway;
+use App\Enums\ServiceType;
 use App\Enums\TransactionCat;
 use App\Enums\TransactionStatus;
 use App\Models\Transaction;
@@ -16,7 +17,7 @@ class TransactionFactory
             'reference' => getRandomReference('PB'),
             'amount' => $amount,
             'description' => 'Point-credit',
-            'service_type' => TransactionCat::COMMISSION->value,
+            'service_type' => ServiceType::FLIGHT->value,
             'transaction_type' => 'cr',
             'category' => TransactionCat::COMMISSION->value,
             'gateway' => Gateway::ZIPPA->value,
