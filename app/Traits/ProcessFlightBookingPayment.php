@@ -41,5 +41,9 @@ trait ProcessFlightBookingPayment
         $user->depositPoint(getPointBonus($trxn->amount));
 
         TransactionFactory::createPointBonusTransaction(getPointBonus($trxn->amount), $assocOfferId);
+
+        if ($gatewayStatus == 'successful') {
+            $this->flightService->completeFlightBooking($user, ['booking_id' => $trxn['book_flight_id']]);
+        }
     }
 }

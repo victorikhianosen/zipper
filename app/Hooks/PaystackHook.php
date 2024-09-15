@@ -2,11 +2,16 @@
 
 namespace App\Hooks;
 
+use App\Services\FlightService;
 use App\Traits\ProcessFlightBookingPayment;
 
 class PaystackHook
 {
     use ProcessFlightBookingPayment;
+
+    public function __construct(protected FlightService $flightService)
+    {
+    }
 
     public function processHook(): void
     {

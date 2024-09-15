@@ -15,6 +15,7 @@ use App\Models\FlightOffers;
 use App\Models\FlightSetting;
 use App\Models\Setting;
 use App\Models\Transaction;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -197,14 +198,15 @@ class FlightService extends BaseService
     }
 
     /**
+     * @param  array<string, mixed> | null  $data
      * @return array<string, mixed> | \App\Models\BookFlight
      */
-    public function completeFlightBooking(): array|BookFlight
+    public function completeFlightBooking(?User $user = null, ?array $data = null): array|BookFlight
     {
         /** @var \App\Models\User $user */
-        $user = request()->user();
+        $user = $user ?? request()->user();
         $is_reseller = $user->is_reseller;
-        $data = request()->validate([
+        $data = $data ?? request()->validate([
             'booking_id' => 'bail|required|exists:book_flights,id',
         ]);
 
