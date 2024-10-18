@@ -38,7 +38,7 @@ class LoginTest extends TestCase
     {
         User::factory()->create($this->user);
 
-        $response = $this->postJson('/login', $inputData);
+        $response = $this->postJson('/login/password', $inputData);
 
         $response->assertStatus(422);
     }
@@ -47,7 +47,7 @@ class LoginTest extends TestCase
     {
         User::factory()->create($this->user);
 
-        $response = $this->postJson('/login', $this->validPayload);
+        $response = $this->postJson('/login/password', $this->validPayload);
 
         $response->assertSee(['user', 'token']);
     }

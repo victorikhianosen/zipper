@@ -2,7 +2,11 @@
 
 namespace App\Providers;
 
+use App\Mixins\BuilderMixins;
 use App\Models\PersonalAccessToken;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\Sanctum;
 
@@ -13,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        require app_path('Helpers/helpers.php');
     }
 
     /**
@@ -21,6 +25,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Request::macro('resolveActionName', function () {
+            $actionName = resolve(Route::class)->getActionName();
+
+            return substr($actionName, strpos($actionName, '@') + 1);
+        });
+        Builder::mixin(new BuilderMixins());
         Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
     }
 }

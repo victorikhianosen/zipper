@@ -17,13 +17,13 @@ class PasswordResetTest extends TestCase
 
     public static string $email = 'johndoe@gmail.com';
 
-    public static string $otp = '123456';
+    public static string $otp = '1234';
 
     public static string $password = 'password1234';
 
     public static string $invalidEmail = 'goke@gmail.com';
 
-    public static string $invalidOtp = '654321';
+    public static string $invalidOtp = '4321';
 
     public function testItFailsToSendPasswordResetMailDueToTooManyRequest(): void
     {
@@ -77,7 +77,7 @@ class PasswordResetTest extends TestCase
             'email' => static::$email,
             'otp' => static::$invalidOtp,
         ]);
-        $response->assertStatus(400);
+        $response->assertStatus(422);
         $response->assertSee('The password reset token is invalid.');
     }
 
@@ -95,7 +95,7 @@ class PasswordResetTest extends TestCase
             'email' => static::$email,
             'otp' => static::$otp,
         ]);
-        $response->assertStatus(400);
+        $response->assertStatus(422);
         $response->assertSee('The password reset token has expired.');
     }
 
