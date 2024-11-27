@@ -77,6 +77,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 Route::prefix('user')->middleware('auth:sanctum')->group(function () {
 
     Route::controller(UserController::class)->group(function () {
+        Route::get('flight-booking-stats', 'flightBookingStats');
         Route::get('flight-bookings', 'myFlightBookings');
         Route::get('transactions', 'myTransactions');
         Route::get('single-transaction/{transaction}', 'singleTransaction');

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Status\UserStatus;
 use App\Http\Resources\FlightBookingResource;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AdminService;
 use App\Services\UserService;
@@ -21,6 +23,22 @@ class AdminController extends Controller
         $users = $this->userService->getUsers();
 
         return $this->success(data: $users['data'], meta: $users['meta']);
+    }
+
+    public function getUserDetails(User $user): JsonResponse
+    {
+        return $this->success(data: UserResource::make($user));
+    }
+
+    public function toggleUserStatus(User $user): JsonResponse
+    {
+        $user->update([
+            'status' => $user->status == UserStatus::ACTIVE
+                ? UserStatus::RESTRICTED->value
+                : UserStatus::ACTIVE->value,
+        ]);
+
+        return $this->success(data: UserResource::make($user->refresh()));
     }
 
     public function getUserFlightBookings(User $user): JsonResponse

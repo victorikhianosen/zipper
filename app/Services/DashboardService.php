@@ -41,6 +41,7 @@ class DashboardService extends BaseService
     public function getTransactions(): array
     {
         $query = Transaction::withRelationAndColumns('user', ['email', 'first_name', 'last_name', 'phone']);
+        $this->applyTransactionFilter($query);
 
         return $this->paginate($query);
     }
@@ -50,6 +51,16 @@ class DashboardService extends BaseService
         $filter = Arr::get(request()->all(), 'filter', []);
         foreach ($filter as $column => $value) {
             $query = $query->whereJsonContains("search_meta->$column", $value);
+        }
+
+        return $query;
+    }
+
+    protected function applyTransactionFilter(Builder &$query): Builder
+    {
+        $filter = Arr::get(request()->all(), 'filter', []);
+        foreach ($filter as $column => $value) {
+            $query = $query->where($column, $value);
         }
 
         return $query;

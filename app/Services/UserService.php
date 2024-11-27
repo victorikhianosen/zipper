@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\Status\FlightStatus;
 use App\Models\BookFlight;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
 
 class UserService extends BaseService
 {
@@ -14,6 +16,21 @@ class UserService extends BaseService
         protected Transaction $transaction
     ) {
 
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function myFlightBookingStats(): array
+    {
+        $user = request()->user();
+        $flights = $this->bookFlight->where('user_id', $user->id)->with(['transactions']); //@phpstan-ignore-line
+
+        return [
+            'total' => $flights->count(),
+            'ongoing' => $flights->whereStatus(FlightStatus::PENDING->value)->count(),
+            'upcoming' => $flights->whereStatus(FlightStatus::PENDING->value)->count(),
+        ];
     }
 
     /**
@@ -79,6 +96,7 @@ class UserService extends BaseService
     public function getUsers(): array
     {
         $query = User::query();
+        $this->applyUserFilter($query);
 
         return $this->paginate(query: $query);
     }
@@ -89,5 +107,15 @@ class UserService extends BaseService
             ->orWhere('search_meta->trip_type', 'like', "%$search%")
             ->orWhere('search_meta->flight_class', 'like', "%$search%")
             ->orWhere('carrier', 'like', "%$search%");
+    }
+
+    protected function applyUserFilter(Builder &$query): Builder
+    {
+        $filter = Arr::get(request()->all(), 'filter', []);
+        foreach ($filter as $column => $value) {
+            $query = $query->where($column, $value);
+        }
+
+        return $query;
     }
 }

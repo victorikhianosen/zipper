@@ -15,6 +15,11 @@ class UserController extends Controller
 
     }
 
+    public function flightBookingStats(): JsonResponse
+    {
+        return $this->success(data: $this->userService->myFlightBookingStats());
+    }
+
     public function myFlightBookings(): JsonResponse
     {
         $data = $this->userService->myFlightBookings();
