@@ -99,6 +99,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
 
     Route::prefix('users')->controller(AdminController::class)->group(function () {
         Route::get('all', 'getUsers');
+        Route::get('{user}/details', 'getUserDetails');
+        Route::put('{user}/toggle-status', 'toggleUserStatus');
         Route::get('{user}/flight-bookings', 'getUserFlightBookings');
         Route::put('make-reseller/{user}', 'makeReseller');
     });
