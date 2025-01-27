@@ -40,12 +40,41 @@ class FlightController extends Controller
         return $this->success(data: $detail);
     }
 
-    public function bookFlight(FlightBookingRequest $request): JsonResponse
-    {
-        $order = $this->flightService->bookFlight($request);
 
-        return $this->success(message: 'Flight booking processing', data: $order);
+    public function bookFlight(FlightBookingRequest $request)
+    {
+        $validated = $request->validated();
+
+        // Prepare the data to be stored in the database
+        $bookFlightData = [
+            'offer_id' => $validated['offer_id'],
+            'flight_cost' => 0,
+            'flight_order_ref' => uniqid(),
+            'carrier' => $validated['carrier'],
+            'passengers' => json_encode($validated['passengers']),
+            'raw_response' => json_encode($validated),
+            'request_body' => json_encode($request->all()),
+        ];
+
+        // Save the data to the database
+        $bookFlight = BookFlight::create($bookFlightData);
+
+        // Return a simplified response with booking_id
+        return $this->success(
+            'Flight booked successfully',
+            ['booking_id' => $bookFlight->id],  // Return only the booking_id
+            [],
+            201,
+            'success'
+        );
     }
+
+    // public function bookFlight(FlightBookingRequest $request): JsonResponse
+    // {
+    //     $order = $this->flightService->bookFlight($request);
+
+    //     return $this->success(message: 'Flight booking processing', data: $order);
+    // }
 
     public function viewFlight(BookFlight $flight): JsonResponse
     {

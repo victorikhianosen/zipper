@@ -1,18 +1,19 @@
 <?php
 
-use App\Http\Controllers\Admin\AdminController as AdminsController;
-use App\Http\Controllers\Admin\AlertController;
-use App\Http\Controllers\Admin\AppUpdateController;
-use App\Http\Controllers\Admin\AuthController;
-use App\Http\Controllers\Admin\FaqCategoryController;
-use App\Http\Controllers\Admin\FaqController;
-use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\FlightSettingController;
-use App\Http\Controllers\ImageKitSignatureController;
-use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\Admin\FaqController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\AlertController;
+use App\Http\Controllers\FlightOffersController;
+use App\Http\Controllers\FlightSettingController;
+use App\Http\Controllers\Admin\AppUpdateController;
+use App\Http\Controllers\Admin\FaqCategoryController;
+use App\Http\Controllers\ImageKitSignatureController;
+use App\Http\Controllers\Admin\AdminController as AdminsController;
 
 // Route::get('img-sig', [ImageKitSignatureController::class, 'system']);
 Route::controller(AuthController::class)->group(function () {
@@ -27,6 +28,8 @@ Route::controller(AuthController::class)->group(function () {
         Route::get('user', 'getAuthUser');
         Route::post('logout', 'logout');
         Route::post('toggle-2fa', 'toggle2fa');
+     
+
         Route::get('img-sig', [ImageKitSignatureController::class, 'system']);
     });
 });
@@ -115,5 +118,12 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::delete('{role}', 'delete')->middleware('permission:Delete Role');
     });
     Route::get('permissions', [RoleController::class, 'permissions'])->middleware('permission:View Roles');
+
+
+    Route::prefix('offers')->controller(FlightOffersController::class)->group(function () {
+    Route::get('', 'getFlightOffers');
+});
+
+   
 
 });

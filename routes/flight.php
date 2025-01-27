@@ -23,6 +23,9 @@ Route::prefix('flight')->group(function () {
 
         Route::prefix('book')->middleware('auth:sanctum')->group(function () {
             Route::post('/', 'bookFlight');
+            // Route::post('', function() {
+            //     return 'Victror';
+            // } );
             Route::get('/{flight}', 'viewFlight');
             Route::post('complete-flight-booking', 'completeFlightBooking');
             Route::post('retry-for-failed', 'retryBookingForFailedPayment');

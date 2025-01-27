@@ -2,22 +2,23 @@
 
 namespace App\Services;
 
-use App\Enums\AuthType;
-use App\Http\Factories\UserFactory;
-use App\Http\Resources\UserResource;
 use App\Models\User;
-use App\Notifications\AppNotification;
-use App\Notifications\EmailVerificationRequest;
-use App\Notifications\EmailVerificationSuccess;
-use App\Notifications\PasswordResetRequest;
-use App\Notifications\PasswordResetSuccess;
-use App\Notifications\TwoFactorRequest;
+use App\Enums\AuthType;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use App\Http\Factories\UserFactory;
+use Illuminate\Support\Facades\Log;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
+use App\Notifications\AppNotification;
+use App\Notifications\TwoFactorRequest;
 use Laravel\Socialite\Facades\Socialite;
+use App\Notifications\PasswordResetRequest;
+use App\Notifications\PasswordResetSuccess;
+use Illuminate\Validation\ValidationException;
+use App\Notifications\EmailVerificationRequest;
+use App\Notifications\EmailVerificationSuccess;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
 class AuthService
@@ -156,6 +157,10 @@ class AuthService
         }
 
         $otp = app()->environment('production') ? (string) rand(1000, 9999) : '1234';
+
+
+        // Log::info('Generated OTP', ['otp' => $otp]);
+
 
         $user->update([
             'verification_otp' => bcrypt($otp),
