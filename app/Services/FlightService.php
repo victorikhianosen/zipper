@@ -2,31 +2,29 @@
 
 namespace App\Services;
 
-use Throwable;
-use Carbon\Carbon;
-use App\Models\City;
-use App\Models\User;
 use App\Comms\Amadeus;
-use App\Models\Setting;
-use App\Models\BookFlight;
-use App\Models\Transaction;
-use App\Models\FlightOffers;
-use App\Models\FlightSetting;
-use Illuminate\Support\Sleep;
-use App\Enums\TransactionStatus;
-use App\Jobs\ResellerCallBackJob;
 use App\Enums\Status\FlightStatus;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
+use App\Enums\TransactionStatus;
 use App\Exceptions\CustomException;
 use App\Http\Requests\FlightBookingRequest;
 use App\Http\Resources\FlightBookingResource;
+use App\Jobs\ResellerCallBackJob;
+use App\Models\BookFlight;
+use App\Models\City;
+use App\Models\FlightOffers;
+use App\Models\FlightSetting;
+use App\Models\Setting;
+use App\Models\Transaction;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Sleep;
+use Throwable;
 
 class FlightService extends BaseService
 {
-    // protected FlightSetting $flightSetting;
-    protected ?FlightSetting $flightSetting = null;
-
+    protected FlightSetting $flightSetting;
 
     public function __construct(
         protected Amadeus $amadeus,
@@ -36,7 +34,10 @@ class FlightService extends BaseService
         protected FlightSetting $setting,
         protected Setting $generalSetting
     ) {
-        $this->flightSetting = $this->setting->first(); // @phpstan-ignore-line
+        // $this->flightSetting = $this->setting->first(); // @phpstan-ignore-line
+            $this->setting = $this->setting ?? new FlightSetting();
+
+
     }
 
     /**
@@ -50,11 +51,16 @@ class FlightService extends BaseService
         $fromCity = $this->city->where('city_code', $data['from'])->first()?->city_name;
         $toCity = $this->city->where('city_code', $data['to'])->first()?->city_name;
         $payload = [
-            'originLocationCode' => $data['from'], 'destinationLocationCode' => $data['to'],
-            'departureDate' => $data['departure_date'], 'adults' => $data['no_of_adult'],
-            'children' => $data['no_of_children'], 'infants' => $data['no_of_infant'],
-            'travelClass' => $data['flight_class'], 'nonStop' => $data['stop_over'],
-            'currencyCode' => 'NGN', 'max' => 2,
+            'originLocationCode' => $data['from'],
+            'destinationLocationCode' => $data['to'],
+            'departureDate' => $data['departure_date'],
+            'adults' => $data['no_of_adult'],
+            'children' => $data['no_of_children'],
+            'infants' => $data['no_of_infant'],
+            'travelClass' => $data['flight_class'],
+            'nonStop' => $data['stop_over'],
+            'currencyCode' => 'NGN',
+            'max' => 2,
         ];
         if ($data['trip_type'] == 'round') {
             $payload['returnDate'] = $data['arrival_date'];
@@ -291,7 +297,7 @@ class FlightService extends BaseService
 
         $ticketAgreement = [
             'option' => $this->flightSetting->flight_ticket_option,
-            'delay' => strval($this->flightSetting->delay).'D',
+            'delay' => strval($this->flightSetting->delay) . 'D',
         ];
 
         $contacts = [[
@@ -454,11 +460,17 @@ class FlightService extends BaseService
             DB::beginTransaction();
             if (array_key_exists('data', $resp)) {
                 $pendingBooking->update([
-                    'flight_order_ref' => $resp['data']['id'], 'offer_id' => $data['offer_id'],
-                    'flight_cost' => $resp['data']['flightOffers'][0]['price']['total'], 'flight_offers' => $resp['data']['flightOffers'],
-                    'passengers' => $resp['data']['travelers'], 'remarks' => $resp['data']['remarks'],
-                    'ticketing_agreement' => $resp['data']['ticketingAgreement'], 'dictionaries' => $resp['dictionaries'],
-                    'raw_response' => $resp['data'], 'status' => FlightStatus::COMPLETED->value, 'payment_status' => $trxn->status,
+                    'flight_order_ref' => $resp['data']['id'],
+                    'offer_id' => $data['offer_id'],
+                    'flight_cost' => $resp['data']['flightOffers'][0]['price']['total'],
+                    'flight_offers' => $resp['data']['flightOffers'],
+                    'passengers' => $resp['data']['travelers'],
+                    'remarks' => $resp['data']['remarks'],
+                    'ticketing_agreement' => $resp['data']['ticketingAgreement'],
+                    'dictionaries' => $resp['dictionaries'],
+                    'raw_response' => $resp['data'],
+                    'status' => FlightStatus::COMPLETED->value,
+                    'payment_status' => $trxn->status,
                 ]);
                 //delete offers that's not a deal
                 if (blank($rawOffer?->expires_at)) {

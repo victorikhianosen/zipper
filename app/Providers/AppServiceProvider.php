@@ -2,13 +2,13 @@
 
 namespace App\Providers;
 
+use Illuminate\Http\Request;
+use Laravel\Sanctum\Sanctum;
 use App\Mixins\BuilderMixins;
+use Illuminate\Routing\Route;
 use App\Models\PersonalAccessToken;
 use Illuminate\Database\Query\Builder;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Route;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {

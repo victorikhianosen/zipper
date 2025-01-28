@@ -42,18 +42,9 @@ class FlightSettingController extends Controller
         return $this->success(data: $data);
     }
 
-    // public function createFlightDeals(FlightDealRequest $request) {
-    //     return 'Hey';
-    // }
-
     public function createFlightDeals(FlightDealRequest $request): JsonResponse
     {
         $data = $this->settingService->getOffers($request->validated());
-
-        // return response()->json([
-        //     'success' => true,
-        //     'data' => $data, // This is the raw offers data
-        // ]);
 
         return $this->success(data: FlightOfferResource::collection($data));
     }
@@ -62,7 +53,6 @@ class FlightSettingController extends Controller
     {
         $deals = $this->settingService->getFlightDeals();
 
-        
         return $this->success(data: FlightOfferResource::collection($deals['data']), meta: $deals['meta']);
     }
 
