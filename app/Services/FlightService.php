@@ -2,29 +2,31 @@
 
 namespace App\Services;
 
+use Throwable;
+use Carbon\Carbon;
+use App\Models\City;
+use App\Models\User;
 use App\Comms\Amadeus;
-use App\Enums\Status\FlightStatus;
+use App\Models\Setting;
+use App\Models\BookFlight;
+use App\Models\Transaction;
+use App\Models\FlightOffers;
+use App\Models\FlightSetting;
+use Illuminate\Support\Sleep;
 use App\Enums\TransactionStatus;
+use App\Jobs\ResellerCallBackJob;
+use App\Enums\Status\FlightStatus;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use App\Exceptions\CustomException;
 use App\Http\Requests\FlightBookingRequest;
 use App\Http\Resources\FlightBookingResource;
-use App\Jobs\ResellerCallBackJob;
-use App\Models\BookFlight;
-use App\Models\City;
-use App\Models\FlightOffers;
-use App\Models\FlightSetting;
-use App\Models\Setting;
-use App\Models\Transaction;
-use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Sleep;
-use Throwable;
 
 class FlightService extends BaseService
 {
-    protected FlightSetting $flightSetting;
+    // protected FlightSetting $flightSetting;
+    protected ?FlightSetting $flightSetting = null;
+
 
     public function __construct(
         protected Amadeus $amadeus,

@@ -34,16 +34,4 @@ class FlightOfferService extends BaseService
 
         return $this->paginate(query: $lists);
     }
-
-
-    public function getAllDeals(): array
-    {
-        return [
-            'data' => FlightOffers::all(),
-            'meta' => [
-                'total' => FlightOffers::count(),
-                'timestamp' => now()->toDateTimeString(),
-            ],
-        ];
-    }
 }
