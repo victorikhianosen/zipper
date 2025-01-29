@@ -2,25 +2,25 @@
 
 namespace App\Services;
 
+use Throwable;
+use Carbon\Carbon;
+use App\Models\City;
+use App\Models\User;
 use App\Comms\Amadeus;
-use App\Enums\Status\FlightStatus;
+use App\Models\Setting;
+use App\Models\BookFlight;
+use App\Models\Transaction;
+use App\Models\FlightOffers;
+use App\Models\FlightSetting;
+use Illuminate\Support\Sleep;
 use App\Enums\TransactionStatus;
+use App\Jobs\ResellerCallBackJob;
+use App\Enums\Status\FlightStatus;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use App\Exceptions\CustomException;
 use App\Http\Requests\FlightBookingRequest;
 use App\Http\Resources\FlightBookingResource;
-use App\Jobs\ResellerCallBackJob;
-use App\Models\BookFlight;
-use App\Models\City;
-use App\Models\FlightOffers;
-use App\Models\FlightSetting;
-use App\Models\Setting;
-use App\Models\Transaction;
-use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Sleep;
-use Throwable;
 
 class FlightService extends BaseService
 {
@@ -156,12 +156,63 @@ class FlightService extends BaseService
     /**
      * @return array<string, mixed> | \App\Models\BookFlight
      */
-    public function bookFlight(FlightBookingRequest $request): array|BookFlight
+    // public function bookFlight(FlightBookingRequest $request): array|BookFlight
+    // {
+    //     /** @var \App\Models\User $user */
+    //     $user = $request->user();
+    //     $is_reseller = $user->is_reseller;
+    //     $data = $request->validated();
+    //     $rawOffer = FlightOffers::whereId($data['offer_id'])->first();
+    //     throw_if(blank($rawOffer), CustomException::class, 'Offer refreshed, please restart your search');
+    //     $request->validatePassengerAge($rawOffer->itineraries); //@phpstan-ignore-line
+    //     $meta = $this->buildFlightMeta($data);
+    //     $payload = [
+    //         'data' => [
+    //             'type' => 'flight-order',
+    //             'flightOffers' => [$rawOffer->raw_offer_response],
+    //             'travelers' => $meta['travelers'],
+    //             'remarks' => $meta['remarks'],
+    //             'ticketingAgreement' => $meta['ticketing'],
+    //             'contacts' => $meta['contacts'],
+    //         ],
+    //     ];
+
+    //     // $trxn = $this->verifyFlightPayment($data['offer_id'], $data['payment_reference']);
+    //     // $paymentStatus = $trxn->status;
+    //     // record pending booking
+    //     $pendingBooking = $this->createPendingFlightBooking($rawOffer, $payload, $data);
+
+    //     // if ($paymentStatus == TransactionStatus::PENDING->value) {
+    //     //     $pendingBooking->update(['offer_id' => $rawOffer->id]);
+    //     //     $trxn->update(['book_flight_id' => $pendingBooking->id, 'temp_booking_ref' => $pendingBooking->id]);
+    //     //     throw new CustomException('Payment is processing, retry in few moments');
+    //     // }
+    //     // if ($paymentStatus == TransactionStatus::FAILED->value) {
+    //     //     $pendingBooking->update(['offer_id' => $rawOffer->id, 'payment_status' => TransactionStatus::FAILED->value]);
+    //     //     $trxn->update(['book_flight_id' => $pendingBooking->id, 'temp_booking_ref' => null]);
+    //     //     throw new CustomException('Flight Booking payment failed');
+    //     // }
+    //     // $this->requestForAmadeusBooking(
+    //     //     payload: $payload, data: $data,
+    //     //     pendingBooking: $pendingBooking,
+    //     //     rawOffer: $rawOffer, trxn: $trxn
+    //     // );
+
+    //     if (filled('is_reseller') && $is_reseller == true) {
+    //         dispatch(new ResellerCallBackJob(new FlightBookingResource($pendingBooking), $user));
+    //     }
+
+    //     return ['booking_id' => $pendingBooking->id];
+    // }
+
+
+
+     public function bookFlight(FlightBookingRequest $request): array|BookFlight
     {
-        /** @var \App\Models\User $user */
-        $user = $request->user();
-        $is_reseller = $user->is_reseller;
-        $data = $request->validated();
+        // /** @var \App\Models\User $user */
+        // $user = $request->user();
+        // $is_reseller = $user->is_reseller;
+        return $data = $request->validated();
         $rawOffer = FlightOffers::whereId($data['offer_id'])->first();
         throw_if(blank($rawOffer), CustomException::class, 'Offer refreshed, please restart your search');
         $request->validatePassengerAge($rawOffer->itineraries); //@phpstan-ignore-line

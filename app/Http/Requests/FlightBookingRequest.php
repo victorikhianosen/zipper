@@ -2,10 +2,12 @@
 
 namespace App\Http\Requests;
 
-use App\Exceptions\CustomException;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use App\Exceptions\CustomException;
+use Illuminate\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 
 class FlightBookingRequest extends FormRequest
 {
@@ -25,7 +27,8 @@ class FlightBookingRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'offer_id' => 'bail|required|exists:flight_offers,id',
+            // 'offer_id' => 'bail|required|exists:flight_offers,id',
+            'offer_id' => 'bail|required',
             'passengers' => 'bail|array|required',
             'carrier' => 'bail|string|required',
             // 'payment_reference' => 'bail|required|exists:transactions,reference',
@@ -70,6 +73,22 @@ class FlightBookingRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+
+
+    public function withValidator(Validator $validator)
+    {
+        $validator->after(function ($validator) {
+            $offerId = $this->input('offer_id');
+
+            $existsInOffers = DB::table('flight_offers')->where('id', $offerId)->exists();
+            $existsInDeals = DB::table('flight_deals')->where('id', $offerId)->exists();
+
+            if (!$existsInOffers && !$existsInDeals) {
+                $validator->errors()->add('offer_id', 'The selected offer ID or deal is invalid.');
+            }
+        });
     }
 
     /**

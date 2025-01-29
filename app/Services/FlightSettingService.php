@@ -5,6 +5,7 @@ namespace App\Services;
 use Carbon\Carbon;
 use App\Models\City;
 use App\Comms\Amadeus;
+use App\Models\FlightDeals;
 use App\Models\FlightOffers;
 use App\Models\FlightSetting;
 use Illuminate\Support\Collection;
@@ -19,8 +20,11 @@ class FlightSettingService extends BaseService
         protected Amadeus $amadeus,
         protected City $city,
         protected FlightOffers $flightOffers,
+        protected FlightDeals $flightDeals
+
     ) {
         $this->setting = $this->setting ?? new FlightSetting();
+
     }
 
 
@@ -125,11 +129,158 @@ class FlightSettingService extends BaseService
     // }
 
 
-    public function getOffers(array $data): array|Collection
+
+    // public function getOffers(array $data): array|Collection
+    // {
+    //     $search_id = $data['search_id'];
+    //     $fromCity = $this->city->where('city_code', $data['from'])->first()?->city_name;
+    //     $toCity = $this->city->where('city_code', $data['to'])->first()?->city_name;
+
+    //     $payload = [
+    //         'originLocationCode' => $data['from'],
+    //         'destinationLocationCode' => $data['to'],
+    //         'departureDate' => $data['departure_date'],
+    //         'adults' => $data['no_of_adult'],
+    //         'children' => $data['no_of_children'],
+    //         'infants' => $data['no_of_infant'],
+    //         'travelClass' => $data['flight_class'],
+    //         'nonStop' => $data['stop_over'],
+    //         'currencyCode' => 'NGN',
+    //         'max' => 2,
+    //     ];
+    //     if ($data['trip_type'] === 'round') {
+    //         $payload['returnDate'] = $data['arrival_date'];
+    //     }
+
+    //     $offers = $this->amadeus->searchOffers($payload);
+
+    //     if (blank($offers) || blank($offers['data'])) {
+    //         throw new CustomException('Search doesn\'t bring results');
+    //     }
+
+    //     $existingOffer = $this->flightOffers->where('search_id', $search_id)->first();
+    //     if ($existingOffer) {
+    //         return $this->flightOffers->where('search_id', $search_id)->get();
+    //     }
+
+    //     // Save the first offer only
+    //     $firstOffer = $offers['data'][0];
+
+    //     $offer = $this->flightOffers->create([
+    //         'search_id' => $search_id,
+    //         'itineraries' => $firstOffer['itineraries'],
+    //         'price' => $firstOffer['price'],
+    //         'pricing_option' => $firstOffer['pricingOptions'],
+    //         'traveler_pricing' => $firstOffer['travelerPricings'],
+    //         'raw_offer_response' => $firstOffer,
+    //         'locations' => [
+    //             'from_code' => $data['from'],
+    //             'from_city' => $fromCity,
+    //             'to_code' => $data['to'],
+    //             'to_city' => $toCity,
+    //         ],
+    //         'search_meta' => $data,
+    //         'dictionaries' => $offers['dictionaries'],
+    //         'expires_at' => Carbon::parse($data['expires_at']),
+    //         'image_link' => $data['image_url'],
+    //     ]);
+
+    //     // Update the price field
+    //     $price_array = $firstOffer['price'];
+    //     $price_array['total'] = $data['price'];
+    //     $price_array['grandTotal'] = $data['price'];
+    //     $offer->update(['price' => $price_array]);
+
+    //     // Retrieve and return saved offers from the database
+    //     $fromDb = $this->flightOffers->where('search_id', $search_id)->get();
+
+    //     return $fromDb;
+    // }
+
+
+
+
+    // public function getOffers(array $data): array|Collection
+    // {
+    //     $search_id = $data['search_id'];
+    //     $fromCity = $this->city->where('city_code', $data['from'])->first()?->city_name;
+    //     $toCity = $this->city->where('city_code', $data['to'])->first()?->city_name;
+
+    //     $payload = [
+    //         'originLocationCode' => $data['from'],
+    //         'destinationLocationCode' => $data['to'],
+    //         'departureDate' => $data['departure_date'],
+    //         'adults' => $data['no_of_adult'],
+    //         'children' => $data['no_of_children'],
+    //         'infants' => $data['no_of_infant'],
+    //         'travelClass' => $data['flight_class'],
+    //         'nonStop' => $data['stop_over'],
+    //         'currencyCode' => 'NGN',
+    //         'max' => 2,
+    //     ];
+    //     if ($data['trip_type'] === 'round') {
+    //         $payload['returnDate'] = $data['arrival_date'];
+    //     }
+
+    //     $offers = $this->amadeus->searchOffers($payload);
+
+    //     if (blank($offers) || blank($offers['data'])) {
+    //         throw new CustomException('Search doesn\'t bring results');
+    //     }
+
+    //     $existingOffer = $this->flightDeals->where('search_id', $search_id)->first();
+    //     if ($existingOffer) {
+    //         return $this->flightDeals->where('search_id', $search_id)->get();
+    //     }
+
+    //     // Save the first offer only
+    //     $firstOffer = $offers['data'][0];
+
+    //     $offer = $this->flightDeals->create([
+    //         'search_id' => $search_id,
+    //         'itineraries' => $firstOffer['itineraries'],
+    //         'price' => $firstOffer['price'],
+    //         'pricing_option' => $firstOffer['pricingOptions'],
+    //         'traveler_pricing' => $firstOffer['travelerPricings'],
+    //         'raw_offer_response' => $firstOffer,
+    //         'locations' => [
+    //             'from_code' => $data['from'],
+    //             'from_city' => $fromCity,
+    //             'to_code' => $data['to'],
+    //             'to_city' => $toCity,
+    //         ],
+    //         'search_meta' => $data,
+    //         'dictionaries' => $offers['dictionaries'],
+    //         'expires_at' => Carbon::parse($data['expires_at']),
+    //         'image_link' => $data['image_url'],
+    //     ]);
+
+    //     // Update the price field
+    //     $price_array = $firstOffer['price'];
+    //     $price_array['total'] = $data['price'];
+    //     $price_array['grandTotal'] = $data['price'];
+    //     $offer->update(['price' => $price_array]);
+
+    //     // Retrieve and return saved offers from the database
+    //     $fromDb = $this->flightDeals->where('search_id', $search_id)->get();
+
+    //     return $fromDb;
+    // }
+
+
+
+
+    public function createDeals(array $data): array|Collection
     {
         $search_id = $data['search_id'];
         $fromCity = $this->city->where('city_code', $data['from'])->first()?->city_name;
         $toCity = $this->city->where('city_code', $data['to'])->first()?->city_name;
+
+        // Check if search_id exists and throw an error
+        $existingOffer = $this->flightDeals->where('search_id', $search_id)->first();
+        if ($existingOffer) {
+            throw new CustomException("The search ID {$search_id} has already been taken.");
+        }
 
         $payload = [
             'originLocationCode' => $data['from'],
@@ -143,6 +294,7 @@ class FlightSettingService extends BaseService
             'currencyCode' => 'NGN',
             'max' => 2,
         ];
+
         if ($data['trip_type'] === 'round') {
             $payload['returnDate'] = $data['arrival_date'];
         }
@@ -153,16 +305,10 @@ class FlightSettingService extends BaseService
             throw new CustomException('Search doesn\'t bring results');
         }
 
-        // Prevent duplicate records
-        $existingOffer = $this->flightOffers->where('search_id', $search_id)->first();
-        if ($existingOffer) {
-            return $this->flightOffers->where('search_id', $search_id)->get();
-        }
-
         // Save the first offer only
         $firstOffer = $offers['data'][0];
 
-        $offer = $this->flightOffers->create([
+        $offer = $this->flightDeals->create([
             'search_id' => $search_id,
             'itineraries' => $firstOffer['itineraries'],
             'price' => $firstOffer['price'],
@@ -181,17 +327,87 @@ class FlightSettingService extends BaseService
             'image_link' => $data['image_url'],
         ]);
 
-        // Update the price field
         $price_array = $firstOffer['price'];
         $price_array['total'] = $data['price'];
         $price_array['grandTotal'] = $data['price'];
         $offer->update(['price' => $price_array]);
 
-        // Retrieve and return saved offers from the database
-        $fromDb = $this->flightOffers->where('search_id', $search_id)->get();
-
-        return $fromDb;
+        return $this->flightDeals->where('search_id', $search_id)->get();
     }
+
+
+
+    // public function getOffers(array $data): array|Collection
+    // {
+    //     $search_id = $data['search_id'];
+    //     $fromCity = $this->city->where('city_code', $data['from'])->first()?->city_name;
+    //     $toCity = $this->city->where('city_code', $data['to'])->first()?->city_name;
+
+    //     $payload = [
+    //         'originLocationCode' => $data['from'],
+    //         'destinationLocationCode' => $data['to'],
+    //         'departureDate' => $data['departure_date'],
+    //         'adults' => $data['no_of_adult'],
+    //         'children' => $data['no_of_children'],
+    //         'infants' => $data['no_of_infant'],
+    //         'travelClass' => $data['flight_class'],
+    //         'nonStop' => $data['stop_over'],
+    //         'currencyCode' => 'NGN',
+    //         'max' => 2,
+    //     ];
+    //     if ($data['trip_type'] === 'round') {
+    //         $payload['returnDate'] = $data['arrival_date'];
+    //     }
+
+    //     $offers = $this->amadeus->searchOffers($payload);
+
+    //     if (blank($offers) || blank($offers['data'])) {
+    //         throw new CustomException('Search doesn\'t bring results');
+    //     }
+
+    //     // Prevent duplicate records
+    //     $existingOffer = $this->flightOffers->where('search_id', $search_id)->first();
+    //     if ($existingOffer) {
+    //         return $this->flightOffers->where('search_id', $search_id)->get();
+    //     }
+
+    //     // Save the first offer only
+    //     $firstOffer = $offers['data'][0];
+
+    //     $offer = $this->flightOffers->create([
+    //         'search_id' => $search_id,
+    //         'itineraries' => $firstOffer['itineraries'],
+    //         'price' => $firstOffer['price'],
+    //         'pricing_option' => $firstOffer['pricingOptions'],
+    //         'traveler_pricing' => $firstOffer['travelerPricings'],
+    //         'raw_offer_response' => $firstOffer,
+    //         'locations' => [
+    //             'from_code' => $data['from'],
+    //             'from_city' => $fromCity,
+    //             'to_code' => $data['to'],
+    //             'to_city' => $toCity,
+    //         ],
+    //         'search_meta' => $data,
+    //         'dictionaries' => $offers['dictionaries'],
+    //         'expires_at' => Carbon::parse($data['expires_at']),
+    //         'image_link' => $data['image_url'],
+    //     ]);
+
+    //     // Update the price field
+    //     $price_array = $firstOffer['price'];
+    //     $price_array['total'] = $data['price'];
+    //     $price_array['grandTotal'] = $data['price'];
+    //     $offer->update(['price' => $price_array]);
+
+    //     // Retrieve and return saved offers from the database
+    //     $fromDb = $this->flightOffers->where('search_id', $search_id)->get();
+
+    //     return $fromDb;
+    // }
+
+    
+
+
 
     /**
      * @return array<mixed,mixed> | \Illuminate\Support\Collection
@@ -207,7 +423,7 @@ class FlightSettingService extends BaseService
 
     public function getFlightDeals(): array
     {
-        $allFlightDeals = FlightOffers::all();
+        $allFlightDeals = FlightDeals::all();
 
         return [
             'data' => $allFlightDeals->toArray(),
