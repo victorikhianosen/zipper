@@ -1,15 +1,33 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\FlightController;
-use App\Http\Controllers\FlightSettingController;
 use App\Http\Controllers\PaymentController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FlightSettingController;
 
 Route::prefix('flight')->group(function () {
 
+
     Route::get('cities', [CityController::class, 'getCities']);
+
+    // Route::prefix('deals')->controller(FlightController::class)->group(function () {
+    //     Route::post('book', function () {
+    //         return 'With Deals';
+    //     });
+    // });
+
+
+   Route::prefix('deals')->middleware(['auth:sanctum'])->controller(FlightController::class)->group(function () {
+        Route::prefix('book')->group(function(){
+            Route::post('/', 'bookFlightWithDeals');
+        });
+    });
+
+
     Route::prefix('offers')->controller(FlightController::class)->group(function () {
+
+
         Route::get('airlines', 'getAirlines');
         Route::post('/', 'getOffers');
         Route::get('/{offer}', 'getOffer');
@@ -23,9 +41,7 @@ Route::prefix('flight')->group(function () {
 
         Route::prefix('book')->middleware('auth:sanctum')->group(function () {
             Route::post('/', 'bookFlight');
-            // Route::post('', function() {
-            //     return 'Victror';
-            // } );
+
             Route::get('/{flight}', 'viewFlight');
             Route::post('complete-flight-booking', 'completeFlightBooking');
             Route::post('retry-for-failed', 'retryBookingForFailedPayment');

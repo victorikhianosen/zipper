@@ -2,22 +2,22 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use App\Enums\AuthType;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use App\Http\Factories\UserFactory;
 use App\Http\Resources\UserResource;
-use App\Models\User;
-use App\Notifications\AppNotification;
-use App\Notifications\EmailVerificationRequest;
-use App\Notifications\EmailVerificationSuccess;
-use App\Notifications\PasswordResetRequest;
-use App\Notifications\PasswordResetSuccess;
-use App\Notifications\TwoFactorRequest;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
+use App\Notifications\AppNotification;
+use App\Notifications\TwoFactorRequest;
 use Laravel\Socialite\Facades\Socialite;
+use App\Notifications\PasswordResetRequest;
+use App\Notifications\PasswordResetSuccess;
+use Illuminate\Validation\ValidationException;
+use App\Notifications\EmailVerificationRequest;
+use App\Notifications\EmailVerificationSuccess;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 
 class AuthService

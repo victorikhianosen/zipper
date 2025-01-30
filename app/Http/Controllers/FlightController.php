@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\FlightBookingRequest;
-use App\Http\Requests\FlightOfferRequest;
-use App\Http\Resources\FlightBookingResource;
-use App\Http\Resources\FlightOfferResource;
 use App\Models\BookFlight;
 use App\Models\FlightOffers;
-use App\Services\FlightOfferService;
 use App\Services\FlightService;
 use Illuminate\Http\JsonResponse;
+use App\Services\FlightOfferService;
+use App\Http\Requests\FlightOfferRequest;
+use App\Http\Requests\FlightBookingRequest;
+use App\Http\Resources\FlightOfferResource;
+use App\Http\Resources\FlightBookingResource;
 
 class FlightController extends Controller
 {
@@ -45,6 +45,14 @@ class FlightController extends Controller
         $order = $this->flightService->bookFlight($request);
 
         return $this->success(message: 'Flight booking processing', data: $order);
+    }
+
+
+    public function bookFlightWithDeals(FlightBookingRequest $request)
+    {
+        $data = $this->flightService->bookFlightWithDeals($request);
+        return $this->success(message: 'Flight booking processing', data: $data);
+
     }
 
     public function viewFlight(BookFlight $flight): JsonResponse

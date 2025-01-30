@@ -9,7 +9,9 @@ use App\Models\User;
 use App\Comms\Amadeus;
 use App\Models\Setting;
 use App\Models\BookFlight;
+use App\Models\FlightDeals;
 use App\Models\Transaction;
+use Illuminate\Support\Str;
 use App\Models\FlightOffers;
 use App\Models\FlightSetting;
 use Illuminate\Support\Sleep;
@@ -19,8 +21,11 @@ use App\Enums\Status\FlightStatus;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\CustomException;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\FlightBookingRequest;
 use App\Http\Resources\FlightBookingResource;
+
 
 class FlightService extends BaseService
 {
@@ -35,9 +40,7 @@ class FlightService extends BaseService
         protected Setting $generalSetting
     ) {
         // $this->flightSetting = $this->setting->first(); // @phpstan-ignore-line
-            $this->setting = $this->setting ?? new FlightSetting();
-
-
+    $this->flightSetting = $this->setting->first() ?? new FlightSetting();
     }
 
     /**
@@ -156,63 +159,12 @@ class FlightService extends BaseService
     /**
      * @return array<string, mixed> | \App\Models\BookFlight
      */
-    // public function bookFlight(FlightBookingRequest $request): array|BookFlight
-    // {
-    //     /** @var \App\Models\User $user */
-    //     $user = $request->user();
-    //     $is_reseller = $user->is_reseller;
-    //     $data = $request->validated();
-    //     $rawOffer = FlightOffers::whereId($data['offer_id'])->first();
-    //     throw_if(blank($rawOffer), CustomException::class, 'Offer refreshed, please restart your search');
-    //     $request->validatePassengerAge($rawOffer->itineraries); //@phpstan-ignore-line
-    //     $meta = $this->buildFlightMeta($data);
-    //     $payload = [
-    //         'data' => [
-    //             'type' => 'flight-order',
-    //             'flightOffers' => [$rawOffer->raw_offer_response],
-    //             'travelers' => $meta['travelers'],
-    //             'remarks' => $meta['remarks'],
-    //             'ticketingAgreement' => $meta['ticketing'],
-    //             'contacts' => $meta['contacts'],
-    //         ],
-    //     ];
-
-    //     // $trxn = $this->verifyFlightPayment($data['offer_id'], $data['payment_reference']);
-    //     // $paymentStatus = $trxn->status;
-    //     // record pending booking
-    //     $pendingBooking = $this->createPendingFlightBooking($rawOffer, $payload, $data);
-
-    //     // if ($paymentStatus == TransactionStatus::PENDING->value) {
-    //     //     $pendingBooking->update(['offer_id' => $rawOffer->id]);
-    //     //     $trxn->update(['book_flight_id' => $pendingBooking->id, 'temp_booking_ref' => $pendingBooking->id]);
-    //     //     throw new CustomException('Payment is processing, retry in few moments');
-    //     // }
-    //     // if ($paymentStatus == TransactionStatus::FAILED->value) {
-    //     //     $pendingBooking->update(['offer_id' => $rawOffer->id, 'payment_status' => TransactionStatus::FAILED->value]);
-    //     //     $trxn->update(['book_flight_id' => $pendingBooking->id, 'temp_booking_ref' => null]);
-    //     //     throw new CustomException('Flight Booking payment failed');
-    //     // }
-    //     // $this->requestForAmadeusBooking(
-    //     //     payload: $payload, data: $data,
-    //     //     pendingBooking: $pendingBooking,
-    //     //     rawOffer: $rawOffer, trxn: $trxn
-    //     // );
-
-    //     if (filled('is_reseller') && $is_reseller == true) {
-    //         dispatch(new ResellerCallBackJob(new FlightBookingResource($pendingBooking), $user));
-    //     }
-
-    //     return ['booking_id' => $pendingBooking->id];
-    // }
-
-
-
-     public function bookFlight(FlightBookingRequest $request): array|BookFlight
+    public function bookFlight(FlightBookingRequest $request): array|BookFlight
     {
-        // /** @var \App\Models\User $user */
-        // $user = $request->user();
-        // $is_reseller = $user->is_reseller;
-        return $data = $request->validated();
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+        $is_reseller = $user->is_reseller;
+        $data = $request->validated();
         $rawOffer = FlightOffers::whereId($data['offer_id'])->first();
         throw_if(blank($rawOffer), CustomException::class, 'Offer refreshed, please restart your search');
         $request->validatePassengerAge($rawOffer->itineraries); //@phpstan-ignore-line
@@ -255,6 +207,57 @@ class FlightService extends BaseService
 
         return ['booking_id' => $pendingBooking->id];
     }
+
+    public function bookFlightWithDeals(FlightBookingRequest $request)
+{
+     $data = $request->validated();
+$user = Auth::user();
+
+    // Check if the user is authenticated
+    if (!$user) {
+        // Handle the case when there is no authenticated user
+        return response()->json(['message' => 'User not authenticated'], 401); // Unauthorized
+    }
+
+    // Now safe to access the user ID
+    $id = $user->id;
+
+    $rawDeal = FlightDeals::find($data['offer_id']);
+    $price =   $rawDeal['price']['total'];
+
+    $departure_port = $rawDeal['itineraries'][0]['segments'][0]['departure']['iataCode'];
+    $arrival_port = $rawDeal['itineraries'][0]['segments'][0]['arrival']['iataCode'];
+    $location = $rawDeal['locations'];
+    $carrierCode = $rawDeal['itineraries'][0]['segments'][0]['carrierCode'];
+
+    $departureDate = $rawDeal['search_meta']['departure_date'];
+    $arrivalDate = $rawDeal['search_meta']['arrival_date'];
+
+    $booking = BookFlight::create([
+        'user_id' => $user['id'],
+        'offer_id' => $data['offer_id'],
+        'flight_order_ref' => Str::uuid(),
+        'flight_cost' => $price,
+        'departure_port' => $departure_port,
+        'arrival_port' => $arrival_port,
+        'locations' => json_encode($location),
+        'flight_offers' => json_encode($rawDeal),
+        'passengers' => json_encode($data['passengers']),
+        'carrier' => $carrierCode,
+        'departure_time' => $departureDate,
+        'arrival_time' => $arrivalDate,
+        'raw_response' => json_encode($data),
+        'status' => 'pending',
+        'tracking_status' => 'initiated',
+        'payment_status' => 'pending',
+    ]);
+
+
+        return ['booking' => $booking->id];
+
+}
+
+
 
     /**
      * @param  array<string, mixed> | null  $data

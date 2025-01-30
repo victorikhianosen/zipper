@@ -423,7 +423,8 @@ class FlightSettingService extends BaseService
 
     public function getFlightDeals(): array
     {
-        $allFlightDeals = FlightDeals::all();
+        // Fetch the latest flight deals, ordered by created_at in descending order
+        $allFlightDeals = FlightDeals::orderBy('created_at', 'desc')->get();
 
         return [
             'data' => $allFlightDeals->toArray(),
