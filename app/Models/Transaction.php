@@ -4,11 +4,12 @@ namespace App\Models;
 
 use App\Enums\Gateway;
 use App\Enums\ServiceType;
+use App\Models\FlightDeals;
 use App\Enums\TransactionCat;
 use App\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Transaction extends BaseModel
 {
@@ -33,6 +34,11 @@ class Transaction extends BaseModel
     public function offer(): BelongsTo
     {
         return $this->belongsTo(FlightOffers::class);
+    }
+
+    public function deal()
+    {
+        return $this->belongsTo(FlightDeals::class, 'deal_id');
     }
 
     public function user(): BelongsTo

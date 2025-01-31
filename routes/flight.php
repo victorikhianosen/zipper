@@ -56,5 +56,9 @@ Route::prefix('flight')->group(function () {
 
     Route::prefix('pay')->middleware('auth:sanctum')->controller(PaymentController::class)->group(function () {
         Route::post('initiate', 'makePayment');
+        Route::post('initiate/deal', 'makePaymentDeal');
+
+
+        
     });
 });

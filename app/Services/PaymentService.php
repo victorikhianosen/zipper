@@ -3,16 +3,19 @@
 namespace App\Services;
 
 use App\Enums\Gateway;
-use App\Enums\ServiceType;
-use App\Enums\TransactionCat;
-use App\Enums\TransactionStatus;
-use App\Enums\TransactionType;
-use App\Exceptions\CustomException;
-use App\Models\FlightOffers;
 use App\Models\Setting;
+use App\Enums\ServiceType;
+use App\Models\FlightDeals;
 use App\Models\Transaction;
+use App\Models\FlightOffers;
+use App\Enums\TransactionCat;
+use App\Enums\TransactionType;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
+use App\Enums\TransactionStatus;
+use App\Exceptions\CustomException;
+use Illuminate\Support\Facades\Auth;
+
 
 class PaymentService extends BaseService
 {
@@ -20,8 +23,7 @@ class PaymentService extends BaseService
         protected Transaction $transaction,
         protected FlightOffers $flightOffers,
         protected Setting $setting
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<string,mixed>
@@ -30,7 +32,7 @@ class PaymentService extends BaseService
     {
         $messages = ['booking_id.required' => 'Booking is required'];
         $data = request()->validate([
-            'channel' => 'bail|required|'.Rule::in(['paystack', 'flutterwave']),
+            'channel' => 'bail|required|' . Rule::in(['paystack', 'flutterwave']),
             'offer_id' => 'bail|required|exists:flight_offers,id',
             'booking_id' => 'bail|required|exists:book_flights,id',
         ], $messages);
@@ -146,5 +148,96 @@ class PaymentService extends BaseService
     private function getFlightServiceCharge(): float
     {
         return $this->setting->first()?->flight_service_charge ?? 0;
+    }
+
+    public function makeDealPayment(): array
+    {
+        $messages = ['booking_id.required' => 'Booking is required'];
+        $data = request()->validate([
+            'channel' => 'bail|required|' . Rule::in(['paystack', 'flutterwave']),
+            'deal_id' => 'bail|required|exists:flight_deals,id',
+            'booking_id' => 'bail|required|exists:book_flights,id',
+        ], $messages);
+        $channel = $data['channel'];
+
+        return $this->initiateDealPaymentWithFlutterwave($data);
+    }
+
+
+
+    protected function initiateDealPaymentWithFlutterwave($data)
+    {
+        $trxn = $this->validateDealDataAndReturnTransaction($data, Gateway::FLUTTERWAVE->value);
+        $user = auth()->user();
+        $deals = FlightDeals::where('id', $data['deal_id'])->first();
+        $departureAt = $deals['itineraries'][0]['segments'][0]['departure']['iataCode'];
+        $deal_id = $deals['id'];
+
+        return [
+            'reference' => $trxn->reference,
+            'amount' => $this->calculatePaystackCharge($trxn->amount) * 100,
+            'break_down' => [
+                'flight_amount' => $trxn->amount - $this->getFlightServiceCharge(),
+                'service_charge' => $this->getFlightServiceCharge(),
+                'gateway_charge' => $this->calculatePaystackCharge($trxn->amount) - $trxn->amount,
+                'total_in_kobo' => $this->calculatePaystackCharge($trxn->amount) * 100,
+                'total_in_naira' => $this->calculatePaystackCharge($trxn->amount),
+            ],
+            'pkey' => config('vars.paystack.pub_key'),
+            'meta' => [
+                'reference' => $trxn->reference,
+                'email' => $user['email'], //@phpstan-ignore-line
+                'type' => ServiceType::FLIGHT->value,
+                'amount' => $trxn->amount,
+                'offer_id' => $deal_id,
+            ],
+        ];
+
+        // return [
+        //     'data' => $trxn
+        // ];  //
+
+    }
+
+    
+    private function validateDealDataAndReturnTransaction(array $data, string $gateway)
+    {
+        $user = auth()->user();
+
+        $deals = FlightDeals::where('id', $data['deal_id'])->first();
+        $departureAt = $deals['itineraries'][0]['segments'][0]['departure']['iataCode'];
+        $deal_id = $deals['id'];
+        $flightPrice = $deals['price']['total'];
+        $reference = getRandomReference('FLP');
+        $amount = $flightPrice + 1000;
+
+        return Transaction::create([
+        'user_id' => $user->id,
+        'offer_id' => $deal_id,
+        'reference' => $reference,
+        'amount' => $amount,
+        'description' => 'Payment for flight booking',
+        'service_type' => ServiceType::FLIGHT->value,
+        'transaction_type' => TransactionType::OUTFLOW->value,
+        'category' => TransactionCat::FLIGHTBOOKING->value,
+        'gateway' => 'flutterwave',
+        'status' => TransactionStatus::PENDING->value,
+        'book_flight_id' => $data['booking_id'],
+        'meta' => [
+            'reference' => $reference,
+            'email' => $user->email,
+            'type' => ServiceType::FLIGHT->value,
+            'amount' => $amount,
+            'offer_id' => $deal_id,
+        ],
+    ]);
+
+
+    }
+
+
+    private function getDealServiceCharge(): float
+    {
+        return $this->setting->first()?->deal_service_charge ?? 0;
     }
 }
