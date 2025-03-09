@@ -119,9 +119,8 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::post('{role}', 'update')->middleware('permission:Edit Role');
         Route::delete('{role}', 'delete')->middleware('permission:Delete Role');
     });
+    
     Route::get('permissions', [RoleController::class, 'permissions'])->middleware('permission:View Roles');
-
-
     Route::prefix('offers')->controller(FlightOffersController::class)->group(function () {
     Route::get('', 'getFlightOffers');
 });

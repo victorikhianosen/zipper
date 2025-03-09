@@ -22,19 +22,27 @@ class PaymentController extends Controller
     }
 
 
-    public function makePaymentDeal(Request $request)
+    public function makePaymentDeal(PaymentRequest $request)
     {
-        $validated = $request->validate([
-            'channel' => 'required|in:flutterwave',
-            'deal_id' => 'required|uuid',
-            'booking_id' => 'required|uuid',
-        ]);
-
+        $validated = $request->validated();
         $data = $this->paymentService->makeDealPayment($validated);
-
         return $this->success(data: $data);
-
     }
+
+
+    // public function makePaymentDeal(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'channel' => 'required|in:flutterwave',
+    //         'deal_id' => 'required|uuid',
+    //         'booking_id' => 'required|uuid',
+    //     ]);
+
+    //     $data = $this->paymentService->makeDealPayment($validated);
+
+    //     return $this->success(data: $data);
+
+    // }
 
 
     // public function makePayment(): JsonResponse
@@ -43,4 +51,9 @@ class PaymentController extends Controller
 
     //     return $this->success(data: $data);
     // }
+
+
+    public function paystackCallback(Request $request) {
+        return $request->all();
+    }
 }

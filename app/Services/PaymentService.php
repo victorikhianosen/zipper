@@ -15,6 +15,7 @@ use Illuminate\Validation\Rule;
 use App\Enums\TransactionStatus;
 use App\Exceptions\CustomException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 
 class PaymentService extends BaseService
@@ -145,25 +146,28 @@ class PaymentService extends BaseService
         ]);
     }
 
-    private function getFlightServiceCharge(): float
-    {
-        return $this->setting->first()?->flight_service_charge ?? 0;
-    }
-
-    public function makeDealPayment(): array
-    {
-        $messages = ['booking_id.required' => 'Booking is required'];
-        $data = request()->validate([
-            'channel' => 'bail|required|' . Rule::in(['paystack', 'flutterwave']),
-            'deal_id' => 'bail|required|exists:flight_deals,id',
-            'booking_id' => 'bail|required|exists:book_flights,id',
-        ], $messages);
-        $channel = $data['channel'];
-
-        return $this->initiateDealPaymentWithFlutterwave($data);
-    }
 
 
+public function makeDealPayment($data)
+{
+    $trxn = $this->validateDealDataAndReturnTransaction($data, 'paystack');
+    $paystackKey = 'sk_test_3e11ad95bbdd2379a5a83d88f9d6ba9ffc975cbe';
+    $response = Http::withHeaders([
+        'Authorization' => "Bearer {$paystackKey}",
+        'Content-Type' => 'application/json',
+    ])->post('https://api.paystack.co/transaction/initialize', [
+        'email' => 'Victor@gmail.com',
+        'amount' => $trxn->amount * 100, // Convert to kobo
+        'reference' => $trxn->reference,
+        'callback_url' => url('pay/callback'), // URL to handle response
+        'metadata' => [
+            'deal_id' => $data['deal_id'],
+            'booking_id' => $data['booking_id'],
+        ],
+    ]);
+
+    return $response->json();
+}
 
     protected function initiateDealPaymentWithFlutterwave($data)
     {
@@ -183,7 +187,6 @@ class PaymentService extends BaseService
                 'total_in_kobo' => $this->calculatePaystackCharge($trxn->amount) * 100,
                 'total_in_naira' => $this->calculatePaystackCharge($trxn->amount),
             ],
-            'pkey' => config('vars.paystack.pub_key'),
             'meta' => [
                 'reference' => $trxn->reference,
                 'email' => $user['email'], //@phpstan-ignore-line
@@ -192,24 +195,18 @@ class PaymentService extends BaseService
                 'offer_id' => $deal_id,
             ],
         ];
-
-        // return [
-        //     'data' => $trxn
-        // ];  //
-
     }
 
-    
+
     private function validateDealDataAndReturnTransaction(array $data, string $gateway)
     {
         $user = auth()->user();
-
         $deals = FlightDeals::where('id', $data['deal_id'])->first();
         $departureAt = $deals['itineraries'][0]['segments'][0]['departure']['iataCode'];
         $deal_id = $deals['id'];
         $flightPrice = $deals['price']['total'];
         $reference = getRandomReference('FLP');
-        $amount = $flightPrice + 1000;
+        $amount = $flightPrice + $this->getFlightServiceCharge();
 
         return Transaction::create([
         'user_id' => $user->id,
@@ -236,8 +233,12 @@ class PaymentService extends BaseService
     }
 
 
-    private function getDealServiceCharge(): float
+    private function getFlightServiceCharge()
     {
-        return $this->setting->first()?->deal_service_charge ?? 0;
+        return Setting::first()?->flight_service_charge ?? 0;
     }
+
+
+
+
 }
